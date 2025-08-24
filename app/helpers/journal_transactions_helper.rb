@@ -1,0 +1,2 @@
+module JournalTransactionsHelper
+end

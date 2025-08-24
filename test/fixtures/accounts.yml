@@ -4,10 +4,10 @@ one:
   name: MyString
   account_type: 1
   description: MyString
-  category_id: 1
+
 
 two:
   name: MyString
   account_type: 1
   description: MyString
-  category_id: 1
+
