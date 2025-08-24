@@ -1,0 +1,19 @@
+<!-- app/views/accounts/index.html.erb -->
+<p class="text-green-600 mb-4"><%= notice %></p>
+
+<% content_for :title, "Accounts" %>
+
+<h1 class="text-2xl font-bold mb-6">Accounts</h1>
+
+<div id="accounts" class="grid grid-cols-1 gap-6">
+  <% @accounts.each do |account| %>
+    <div class="p-4 bg-white">
+      <%= render account %>
+      <p>
+        <%= link_to "Show this account", account, class: "text-blue-600 hover:underline" %>
+      </p>
+    </div>
+  <% end %>
+</div>
+
+<%= link_to "New account", new_account_path, class: "mt-8 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" %>

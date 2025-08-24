@@ -1,0 +1,21 @@
+<div id="<%= dom_id account %>" class="p-4 bg-white mb-4">
+  <p class="mb-2">
+    <strong class="text-gray-700">Name:</strong>
+    <span class="text-lg font-semibold"><%= account.name %></span>
+  </p>
+
+  <p class="mb-2">
+    <strong class="text-gray-700">Account type:</strong>
+    <span class="text-blue-600"><%= account.account_type.titleize %></span>
+  </p>
+
+  <p class="mb-2">
+    <strong class="text-gray-700">Description:</strong>
+    <span class="text-gray-600"><%= account.description %></span>
+  </p>
+
+  <p>
+    <strong class="text-gray-700">Category:</strong>
+    <span class="text-gray-600"><%= account.category_id %></span>
+  </p>
+</div>
