@@ -1,6 +1,6 @@
 class JournalTransaction < ApplicationRecord
   has_many :entries, dependent: :destroy
-  accepts_nested_attributes_for :entries
+  accepts_nested_attributes_for :entries, allow_destroy: true, reject_if: :all_blank
 
   validates :date, presence: true
   validate :balanced_entries
@@ -8,11 +8,11 @@ class JournalTransaction < ApplicationRecord
   private
 
   def balanced_entries
-      debit_sum  = entries.select { |e| e.entry_type == "debit" }.sum(&:amount)
-      credit_sum = entries.select { |e| e.entry_type == "credit" }.sum(&:amount)
+    debit_sum  = entries.reject(&:marked_for_destruction?).select { |e| e.entry_type == "debit" }.sum(&:amount)
+    credit_sum = entries.reject(&:marked_for_destruction?).select { |e| e.entry_type == "credit" }.sum(&:amount)
 
-      if debit_sum != credit_sum
-        errors.add(:base, "Transaction is not balanced: debits (#{debit_sum}) must equal credits (#{credit_sum})")
-      end
+    if debit_sum != credit_sum
+      errors.add(:base, "Transaction is not balanced: debits (#{debit_sum}) must equal credits (#{credit_sum})")
+    end
   end
 end

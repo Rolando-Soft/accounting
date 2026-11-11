@@ -1,0 +1,35 @@
+<% content_for :title, "Journal Transaction Details" %>
+<h1 class="text-2xl font-bold mb-6">Journal Transaction Details</h1>
+<div class="bg-white p-6 rounded shadow">
+  <div class="mb-4">
+    <label class="block text-gray-700 font-bold mb-2">Date:</label>
+    <p class="border rounded px-3 py-2 bg-gray-100"><%= @journal_transaction.date %></p>
+  </div>
+
+  <div class="mb-4">
+    <label class="block text-gray-700 font-bold mb-2">Description:</label>
+    <p class="border rounded px-3 py-2 bg-gray-100"><%= @journal_transaction.description %></p>
+  </div>
+
+  <h3 class="text-lg font-bold mb-4">Entries</h3>
+  <div class="space-y-4">
+    <% @journal_transaction.entries.each do |entry| %>
+      <div class="border p-4 rounded bg-gray-50">
+        <div class="mb-2">
+          <label class="block text-gray-700 font-bold mb-1">Account:</label>
+          <p class="border rounded px-3 py-2 bg-gray-100"><%= entry.account.name %></p>
+        </div>
+        <div class="mb-2">
+          <label class="block text-gray-700 font-bold mb-1">Entry Type:</label>
+          <p class="border rounded px-3 py-2 bg-gray-100"><%= entry.entry_type.capitalize %></p>
+        </div>
+        <div>
+          <label class="block text-gray-700 font-bold mb-1">Amount:</label>
+          <p class="border rounded px-3 py-2 bg-gray-100"><%= number_to_currency(entry.amount) %></p>
+        </div>
+      </div>
+    <% end %>
+  </div>
+  <div class="mt-6">
+    <%= link_to "Back to Journal Transactions", journal_transactions_path, class: "text-blue-600 hover:underline" %>
+</div>

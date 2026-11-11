@@ -1,0 +1,9 @@
+<% content_for :title, "New Journal" %>
+
+<h1>New Journal Entry</h1>
+
+<%= render "form", journal_transaction: @journal_transaction %>
+
+<br>
+
+<%= link_to "Back", journal_transactions_path, class: "text-blue-600 hover:underline" %>

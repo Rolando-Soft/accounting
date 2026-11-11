@@ -1,0 +1,29 @@
+<!-- app/views/journal_transactions/index.html.erb -->
+<h1 class="text-2xl mb-6">Journal Transactions</h1>
+
+<table class="table-auto w-72">
+  <thead>
+  <tr>
+    <th class="border border-blue-300">ID</th>
+    <th class="border border-blue-300">Date</th>
+    <th class="border border-blue-300">Actions</th>
+  </tr>
+  </thead>
+  <tbody>
+  <% @journal_transactions.each do |transaction| %>
+      <tr class="border border-gray-300 text-center">
+        <td class="border border-blue-300  text-center"><%= transaction.id %></td>
+        <td class="border border-blue-300  text-center"><%= transaction.date %></td>
+        <td class="border border-blue-300  text-center">
+          <%= link_to "Show", journal_transaction_path(transaction) %>
+          <%= link_to "Edit", edit_journal_transaction_path(transaction) %>
+          <%= link_to "Delete", journal_transaction_path(transaction), method: :delete, data: { confirm: "Are you sure?" } %>
+        </td>
+      </tr>
+  <% end %>
+  </tbody>
+</table>
+
+<div class="text-blue-600 hover:underline mr-2 mt-6">
+  <%= link_to "New Journal Transaction", new_journal_transaction_path %>
+</div>
