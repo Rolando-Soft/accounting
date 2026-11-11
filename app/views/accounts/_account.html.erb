@@ -14,8 +14,9 @@
     <span class="text-gray-600"><%= account.description %></span>
   </p>
 
-  <p>
-    <strong class="text-gray-700">Category:</strong>
-    <span class="text-gray-600"><%= account.category_id %></span>
+  <p class="mb-2">
+    <strong class="text-gray-700">Cash flow category:</strong>
+    <span class="text-gray-600"><%= account.cash_flow_category&.titleize || "—" %></span>
   </p>
+
 </div>

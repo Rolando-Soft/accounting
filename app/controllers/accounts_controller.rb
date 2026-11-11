@@ -49,6 +49,7 @@ class AccountsController < ApplicationController
 
   # DELETE /accounts/1 or /accounts/1.json
   def destroy
+
     @account.destroy!
 
     respond_to do |format|
@@ -65,6 +66,6 @@ class AccountsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def account_params
-      params.expect(account: [ :name, :account_type, :description, :category_id ])
+      params.expect(account: [ :name, :account_type, :description, :cash_flow_category ])
     end
 end

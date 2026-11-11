@@ -5,6 +5,7 @@ class Account < ApplicationRecord
   has_many :journal_transactions, through: :entries
 
   enum :account_type, {asset: 0, liability: 1, income: 2, expense: 3, equity: 4}
+  enum :cash_flow_category, {operating: 0, investing: 1, financing: 2}, allow_nil: true
 
   validates :name, presence: true, uniqueness: true
   validates :account_type, presence: true
