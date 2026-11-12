@@ -20,6 +20,19 @@ class JournalTransactionTest < ActiveSupport::TestCase
     assert_match /Transaction is not balanced/, jt.errors[:base].first
   end
 
+  test "is invalid with no entries" do
+    jt = JournalTransaction.new(date: Date.today)
+    assert_not jt.valid?
+    assert_includes jt.errors[:base], "Transaction must have at least two entries"
+  end
+
+  test "is invalid with only one entry" do
+    jt = JournalTransaction.new(date: Date.today)
+    jt.entries.build(account: @account, entry_type: :debit, amount: 100)
+    assert_not jt.valid?
+    assert_includes jt.errors[:base], "Transaction must have at least two entries"
+  end
+
   test "is invalid without a date" do
     jt = JournalTransaction.new
     assert_not jt.valid?

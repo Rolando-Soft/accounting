@@ -3,7 +3,11 @@ require "test_helper"
 class EntryTest < ActiveSupport::TestCase
   def setup
     @account = Account.create!(name: "Checking", account_type: :asset)
-    @journal_transaction = JournalTransaction.create!(date: Date.today)
+    @other_account = Account.create!(name: "Checking Transfers", account_type: :asset)
+    @journal_transaction = JournalTransaction.create!(date: Date.today, entries_attributes: [
+      { account: @account, entry_type: "debit", amount: 50 },
+      { account: @other_account, entry_type: "credit", amount: 50 }
+    ])
     @entry = Entry.new(
       account: @account,
       journal_transaction: @journal_transaction,

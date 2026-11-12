@@ -4,6 +4,7 @@ class JournalTransaction < ApplicationRecord
 
   validates :date, presence: true
   validate :balanced_entries
+  validate :minimum_two_entries
 
   private
 
@@ -13,6 +14,12 @@ class JournalTransaction < ApplicationRecord
 
     if debit_sum != credit_sum
       errors.add(:base, "Transaction is not balanced: debits (#{debit_sum}) must equal credits (#{credit_sum})")
+    end
+  end
+
+  def minimum_two_entries
+    if entries.reject(&:marked_for_destruction?).size < 2
+      errors.add(:base, "Transaction must have at least two entries")
     end
   end
 end
