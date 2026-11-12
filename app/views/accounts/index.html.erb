@@ -5,15 +5,19 @@
 
 <h1 class="text-2xl font-bold mb-6">Accounts</h1>
 
-<div id="accounts" class="grid grid-cols-1 gap-6">
-  <% @accounts.each do |account| %>
-    <div class="p-4 bg-white">
-      <%= render account %>
-      <p>
-        <%= link_to "Show this account", account, class: "text-blue-600 hover:underline" %>
-      </p>
-    </div>
-  <% end %>
-</div>
+<table id="accounts" class="table-auto w-full mb-6">
+  <thead>
+    <tr>
+      <th class="border border-blue-300 px-3 py-2">Name</th>
+      <th class="border border-blue-300 px-3 py-2">Type</th>
+      <th class="border border-blue-300 px-3 py-2">Description</th>
+      <th class="border border-blue-300 px-3 py-2">Cash Flow Category</th>
+      <th class="border border-blue-300 px-3 py-2">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <%= render @accounts %>
+  </tbody>
+</table>
 
 <%= link_to "New account", new_account_path, class: "mt-8 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" %>

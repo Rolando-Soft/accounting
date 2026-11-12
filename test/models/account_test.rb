@@ -26,6 +26,24 @@ class AccountTest < ActiveSupport::TestCase
     assert_includes account.errors[:account_type], "can't be blank"
   end
 
+  test "cash_flow_category enum values" do
+    assert_equal 0, Account.cash_flow_categories[:operating]
+    assert_equal 1, Account.cash_flow_categories[:investing]
+    assert_equal 2, Account.cash_flow_categories[:financing]
+  end
+
+  test "valid without a cash_flow_category" do
+    account = Account.new(name: "Petty Cash", account_type: :asset)
+    assert account.valid?
+    assert_nil account.cash_flow_category
+  end
+
+  test "valid with a cash_flow_category" do
+    account = Account.new(name: "Office Supplies", account_type: :expense, cash_flow_category: :operating)
+    assert account.valid?
+    assert account.operating?
+  end
+
   test "cannot delete account with associated journal transactions" do
     account = Account.create!(name: "Bank", account_type: :asset)
     exp_account = Account.create!(name: "Expense", account_type: :expense)

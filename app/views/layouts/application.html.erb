@@ -23,7 +23,13 @@
   </head>
 
   <body>
-    <div class="ml-6">
+    <nav class="bg-gray-800 px-6 py-3 flex gap-6">
+      <%= link_to "Entries", entries_path, class: "text-white font-semibold hover:text-blue-300" %>
+      <%= link_to "Accounts", accounts_path, class: "text-white font-semibold hover:text-blue-300" %>
+      <%= link_to "Journal Transactions", journal_transactions_path, class: "text-white font-semibold hover:text-blue-300" %>
+    </nav>
+
+    <div class="ml-6 mt-4">
       <%= yield %>
     </div>
   </body>

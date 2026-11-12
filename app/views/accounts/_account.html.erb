@@ -1,22 +1,10 @@
-<div id="<%= dom_id account %>" class="p-4 bg-white mb-4">
-  <p class="mb-2">
-    <strong class="text-gray-700">Name:</strong>
-    <span class="text-lg font-semibold"><%= account.name %></span>
-  </p>
-
-  <p class="mb-2">
-    <strong class="text-gray-700">Account type:</strong>
-    <span class="text-blue-600"><%= account.account_type.titleize %></span>
-  </p>
-
-  <p class="mb-2">
-    <strong class="text-gray-700">Description:</strong>
-    <span class="text-gray-600"><%= account.description %></span>
-  </p>
-
-  <p class="mb-2">
-    <strong class="text-gray-700">Cash flow category:</strong>
-    <span class="text-gray-600"><%= account.cash_flow_category&.titleize || "—" %></span>
-  </p>
-
-</div>
+<tr id="<%= dom_id account %>" class="border border-gray-300 text-center">
+  <td class="border border-blue-300 px-3 py-2"><%= account.name %></td>
+  <td class="border border-blue-300 px-3 py-2"><%= account.account_type.titleize %></td>
+  <td class="border border-blue-300 px-3 py-2"><%= account.description %></td>
+  <td class="border border-blue-300 px-3 py-2"><%= account.cash_flow_category&.titleize || "—" %></td>
+  <td class="border border-blue-300 px-3 py-2">
+    <%= link_to "Edit", edit_account_path(account), class: "text-blue-600 hover:underline mr-2" %>
+    <%= link_to "Delete", account, method: :delete, data: { confirm: "Are you sure?" }, class: "text-red-600 hover:underline" %>
+  </td>
+</tr>
