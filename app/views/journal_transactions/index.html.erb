@@ -17,7 +17,7 @@
         <td class="border border-blue-300  text-center">
           <%= link_to "Show", journal_transaction_path(transaction) %>
           <%= link_to "Edit", edit_journal_transaction_path(transaction) %>
-          <%= link_to "Delete", journal_transaction_path(transaction), method: :delete, data: { confirm: "Are you sure?" } %>
+          <%= link_to "Delete", journal_transaction_path(transaction), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
         </td>
       </tr>
   <% end %>
