@@ -1,5 +1,6 @@
 <tr id="<%= dom_id account %>" class="border border-gray-300 text-center">
   <td class="border border-blue-300 px-3 py-2"><%= account.name %></td>
+  <td class="border border-blue-300 px-3 py-2"><%= account.parent&.name || "—" %></td>
   <td class="border border-blue-300 px-3 py-2"><%= account.account_type.titleize %></td>
   <td class="border border-blue-300 px-3 py-2"><%= account.description %></td>
   <td class="border border-blue-300 px-3 py-2"><%= account.cash_flow_category&.titleize || "—" %></td>

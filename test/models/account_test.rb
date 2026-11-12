@@ -44,6 +44,47 @@ class AccountTest < ActiveSupport::TestCase
     assert account.operating?
   end
 
+  test "valid with a parent account of the same type" do
+    parent = Account.create!(name: "All Assets", account_type: :asset)
+    child = Account.new(name: "Petty Cash", account_type: :asset, parent: parent)
+    assert child.valid?
+    assert_equal parent, child.parent
+    assert_includes parent.children, child
+  end
+
+  test "invalid with a parent account of a different type" do
+    parent = Account.create!(name: "All Assets", account_type: :asset)
+    child = Account.new(name: "Rent Expense", account_type: :expense, parent: parent)
+    assert_not child.valid?
+    assert_includes child.errors[:account_type], "must match the parent account's type (asset)"
+  end
+
+  test "invalid with itself as parent" do
+    account = Account.create!(name: "All Assets", account_type: :asset)
+    account.parent_id = account.id
+    assert_not account.valid?
+    assert_includes account.errors[:parent], "can't be the account itself"
+  end
+
+  test "invalid with a cycle of parents" do
+    grandparent = Account.create!(name: "All Assets", account_type: :asset)
+    parent = Account.create!(name: "Bank Accounts", account_type: :asset, parent: grandparent)
+    child = Account.create!(name: "Checking", account_type: :asset, parent: parent)
+
+    grandparent.parent = child
+    assert_not grandparent.valid?
+    assert_includes grandparent.errors[:parent], "cannot create a cycle"
+  end
+
+  test "cannot delete account with sub-accounts" do
+    parent = Account.create!(name: "All Assets", account_type: :asset)
+    Account.create!(name: "Petty Cash", account_type: :asset, parent: parent)
+
+    parent.destroy
+    assert_not parent.destroyed?
+    assert_includes parent.errors[:base], "Cannot delete account with sub-accounts"
+  end
+
   test "cannot delete account with associated journal transactions" do
     account = Account.create!(name: "Bank", account_type: :asset)
     exp_account = Account.create!(name: "Expense", account_type: :expense)
