@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_11_12_001600) do
+ActiveRecord::Schema[8.0].define(version: 2026_11_12_092311) do
   create_table "accounts", force: :cascade do |t|
     t.string "name"
     t.integer "account_type"
@@ -23,12 +23,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_11_12_001600) do
   end
 
   create_table "entries", force: :cascade do |t|
-    t.bigint "journal_transaction_id"
-    t.bigint "account_id"
-    t.decimal "amount"
-    t.integer "entry_type"
+    t.bigint "journal_transaction_id", null: false
+    t.bigint "account_id", null: false
+    t.decimal "amount", precision: 19, scale: 4, null: false
+    t.integer "entry_type", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["account_id", "created_at"], name: "index_entries_on_account_id_and_created_at"
+    t.index ["journal_transaction_id"], name: "index_entries_on_journal_transaction_id"
+    t.check_constraint "amount > 0", name: "entries_amount_positive"
+    t.check_constraint "entry_type IN (0, 1)", name: "entries_entry_type_valid"
   end
 
   create_table "journal_transactions", force: :cascade do |t|
@@ -39,4 +43,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_11_12_001600) do
   end
 
   add_foreign_key "accounts", "accounts", column: "parent_id"
+  add_foreign_key "entries", "accounts", on_delete: :restrict
+  add_foreign_key "entries", "journal_transactions", on_delete: :restrict
 end
