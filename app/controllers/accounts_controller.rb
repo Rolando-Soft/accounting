@@ -3,7 +3,10 @@ class AccountsController < ApplicationController
 
   # GET /accounts or /accounts.json
   def index
-    @accounts = Account.order(:account_type, :name)
+    @accounts_by_type = Account.account_types.keys.each_with_object({}) do |type, hash|
+      roots = Account.where(account_type: type, parent_id: nil).order(:name)
+      hash[type] = roots if roots.any?
+    end
   end
 
   # GET /accounts/new
