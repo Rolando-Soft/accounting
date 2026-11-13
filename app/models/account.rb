@@ -19,6 +19,19 @@ class Account < ApplicationRecord
     "equity" => "Equity"
   }.freeze
 
+  # The entry_type ("debit" or "credit") that increases this account's balance.
+  NORMAL_BALANCE = {
+    "asset" => "debit",
+    "liability" => "credit",
+    "income" => "credit",
+    "expense" => "debit",
+    "equity" => "credit"
+  }.freeze
+
+  def normal_balance
+    NORMAL_BALANCE[account_type]
+  end
+
   validates :name, presence: true, uniqueness: true
   validates :account_type, presence: true
   validates :description, length: { maximum: 500 }

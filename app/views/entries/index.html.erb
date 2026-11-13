@@ -1,1 +1,82 @@
-Entries > Index
+<% content_for :title, "Register" %>
+<p class="text-green-600 mb-4"><%= notice %></p>
+<p class="text-red-600 mb-4"><%= alert %></p>
+
+<%= form_with url: entries_path, method: :get, class: "mb-6 space-y-4" do |form| %>
+  <div>
+    <%= form.label :account_id, "Account", class: "block text-gray-700 font-bold mb-1" %>
+    <%= form.collection_select :account_id, @accounts, :id, :name, { selected: @account&.id }, class: "border rounded px-3 py-2", onchange: "this.form.requestSubmit()" %>
+    <% if @account %>
+      <span class="text-sm text-gray-500 ml-2"><%= Account::TYPE_LABELS[@account.account_type] %></span>
+    <% end %>
+  </div>
+
+  <% if @account %>
+    <div class="flex flex-wrap gap-10">
+      <div>
+        <div class="text-xl font-bold"><%= number_to_currency(@cleared_balance) %></div>
+        <div class="text-sm text-gray-600">Cleared Balance</div>
+      </div>
+      <div>
+        <div class="text-xl font-bold"><%= number_to_currency(@uncleared_balance) %></div>
+        <div class="text-sm text-gray-600">Uncleared Balance</div>
+      </div>
+      <div>
+        <div class="text-xl font-bold">
+          <%= form.text_field :balance_to_reconcile, value: @balance_to_reconcile, size: 10, class: "border rounded px-2 py-1 w-28" %>
+        </div>
+        <div class="text-sm text-gray-600">Balance to Reconcile</div>
+      </div>
+      <div>
+        <div class="text-xl font-bold"><%= number_to_currency(@pending_to_clear) %></div>
+        <div class="text-sm text-gray-600">Pending to Clear</div>
+      </div>
+      <div>
+        <div class="text-xl font-bold"><%= number_to_currency(@working_balance) %></div>
+        <div class="text-sm text-gray-600">Working Balance</div>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="flex flex-wrap items-center gap-6">
+    <%= link_to "Add transaction", new_journal_transaction_path, class: "bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" %>
+
+    <div>
+      <%= form.label :view_filter, "View Filter", class: "font-bold mr-2" %>
+      <%= form.select :view_filter,
+            [["This month", "this_month"], ["Last month", "last_month"], ["Last 3 months", "last_3_months"],
+             ["This year", "this_year"], ["Last year", "last_year"], ["All dates", "all_dates"]],
+            { selected: @view_filter }, class: "border rounded px-2 py-1", onchange: "this.form.requestSubmit()" %>
+    </div>
+
+    <div class="flex gap-4">
+      <% EntriesController::STATUSES.each do |status| %>
+        <label class="flex items-center gap-1">
+          <%= check_box_tag "statuses[]", status, @selected_statuses.include?(status), id: "status_#{status}", onchange: "this.form.requestSubmit()" %>
+          <%= status.titleize %>
+        </label>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+
+<% if @account %>
+  <table class="table-auto w-full">
+    <thead>
+      <tr>
+        <th class="border border-blue-300 px-3 py-2">Date</th>
+        <th class="border border-blue-300 px-3 py-2">Payee</th>
+        <th class="border border-blue-300 px-3 py-2">Account</th>
+        <th class="border border-blue-300 px-3 py-2">Description</th>
+        <th class="border border-blue-300 px-3 py-2">DB</th>
+        <th class="border border-blue-300 px-3 py-2">CR</th>
+        <th class="border border-blue-300 px-3 py-2">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render partial: "entries/entry_row", collection: @entries, as: :entry %>
+    </tbody>
+  </table>
+<% else %>
+  <p class="text-gray-600">No asset or liability accounts yet. <%= link_to "Create one", new_account_path %>.</p>
+<% end %>

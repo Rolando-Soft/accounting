@@ -1,0 +1,20 @@
+<% other_entries = entry.journal_transaction.entries.reject { |e| e.id == entry.id } %>
+<tr id="<%= dom_id(entry) %>" class="border border-gray-300 text-center">
+  <td class="border border-blue-300 px-3 py-2"><%= entry.journal_transaction.date %></td>
+  <td class="border border-blue-300 px-3 py-2"><%= entry.journal_transaction.payee %></td>
+  <td class="border border-blue-300 px-3 py-2 text-left">
+    <% other_entries.each do |other| %>
+      <div><%= other.account.name %> <span class="text-gray-500">(<%= number_to_currency(other.amount) %>)</span></div>
+    <% end %>
+  </td>
+  <td class="border border-blue-300 px-3 py-2"><%= entry.journal_transaction.description %></td>
+  <td class="border border-blue-300 px-3 py-2"><%= number_to_currency(entry.amount) if entry.debit? %></td>
+  <td class="border border-blue-300 px-3 py-2"><%= number_to_currency(entry.amount) if entry.credit? %></td>
+  <td class="border border-blue-300 px-3 py-2">
+    <%= form_with model: entry, url: entry_path(entry), method: :patch do |form| %>
+      <%= hidden_field_tag :return_to, request.fullpath %>
+      <%= form.select :reconciliation_status, Entry.reconciliation_statuses.keys.map { |s| [s.titleize, s] },
+            {}, onchange: "this.form.requestSubmit()", class: "border rounded px-1 py-0.5 text-sm" %>
+    <% end %>
+  </td>
+</tr>
