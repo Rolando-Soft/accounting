@@ -1,11 +1,20 @@
 <!-- app/views/journal_transactions/index.html.erb -->
 <h1 class="text-2xl mb-6">Journal Transactions</h1>
 
-<table class="table-auto w-72">
+<%= form_with url: journal_transactions_path, method: :get, class: "mb-4" do |form| %>
+  <%= form.text_field :q, value: params[:q], placeholder: "Search by payee…", class: "border rounded px-3 py-2 w-72" %>
+  <%= form.submit "Search", class: "bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600" %>
+  <% if params[:q].present? %>
+    <%= link_to "Clear", journal_transactions_path, class: "text-blue-600 hover:underline ml-2" %>
+  <% end %>
+<% end %>
+
+<table class="table-auto w-full">
   <thead>
   <tr>
     <th class="border border-blue-300">ID</th>
     <th class="border border-blue-300">Date</th>
+    <th class="border border-blue-300">Payee</th>
     <th class="border border-blue-300">Actions</th>
   </tr>
   </thead>
@@ -14,6 +23,7 @@
       <tr class="border border-gray-300 text-center">
         <td class="border border-blue-300  text-center"><%= transaction.id %></td>
         <td class="border border-blue-300  text-center"><%= transaction.date %></td>
+        <td class="border border-blue-300  text-center"><%= transaction.payee %></td>
         <td class="border border-blue-300  text-center">
           <%= link_to "Show", journal_transaction_path(transaction) %>
           <%= link_to "Edit", edit_journal_transaction_path(transaction) %>

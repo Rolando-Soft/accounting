@@ -6,6 +6,37 @@ class JournalTransaction < ApplicationRecord
   validate :balanced_entries
   validate :minimum_two_entries
 
+  # Fuzzy-matches `term` against `payee`: a plain substring match always
+  # counts, and a short Levenshtein distance catches typos (e.g. "Amazn").
+  def self.search_by_payee(term, max_distance: 2)
+    return all if term.blank?
+
+    normalized_term = term.strip.downcase
+    where.not(payee: [ nil, "" ]).select do |jt|
+      normalized_payee = jt.payee.downcase
+      normalized_payee.include?(normalized_term) ||
+        levenshtein_distance(normalized_payee, normalized_term) <= max_distance
+    end
+  end
+
+  def self.levenshtein_distance(a, b)
+    costs = (0..b.length).to_a
+    a.each_char.with_index do |char_a, i|
+      costs[0] = i + 1
+      previous = i
+      b.each_char.with_index do |char_b, j|
+        current = costs[j + 1]
+        costs[j + 1] = if char_a == char_b
+          previous
+        else
+          [ costs[j] + 1, costs[j + 1] + 1, previous + 1 ].min
+        end
+        previous = current
+      end
+    end
+    costs.last
+  end
+
   private
 
   def balanced_entries

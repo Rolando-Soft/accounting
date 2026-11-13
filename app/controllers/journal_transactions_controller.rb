@@ -1,6 +1,6 @@
 class JournalTransactionsController < ApplicationController
   def index
-    @journal_transactions = JournalTransaction.all
+    @journal_transactions = JournalTransaction.search_by_payee(params[:q])
   end
 
   def new
@@ -36,6 +36,6 @@ class JournalTransactionsController < ApplicationController
 
   private
   def journal_transaction_params
-    params.require(:journal_transaction).permit(:date, :description, entries_attributes: [:id, :account_id, :amount, :entry_type, :reconciliation_status, :_destroy])
+    params.require(:journal_transaction).permit(:date, :description, :payee, entries_attributes: [:id, :account_id, :amount, :entry_type, :reconciliation_status, :_destroy])
   end
 end
