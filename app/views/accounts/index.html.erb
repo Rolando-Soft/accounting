@@ -5,15 +5,25 @@
 
 <h1 class="text-2xl font-bold mb-6">Accounts</h1>
 
-<% @accounts_by_type.each do |type, roots| %>
-  <section class="mb-8">
-    <h2 class="text-xl font-bold mb-2"><%= Account::TYPE_LABELS[type] %></h2>
-    <ul>
+<table id="accounts" class="table-auto w-full mb-6">
+  <thead>
+    <tr>
+      <th class="border border-blue-300 px-3 py-2 text-left">Name</th>
+      <th class="border border-blue-300 px-3 py-2 text-left">Description</th>
+      <th class="border border-blue-300 px-3 py-2 text-left">Cash Flow Category</th>
+      <th class="border border-blue-300 px-3 py-2">Actions</th>
+    </tr>
+  </thead>
+  <% @accounts_by_type.each do |type, roots| %>
+    <tbody>
+      <tr class="bg-gray-100">
+        <th colspan="4" class="border border-blue-300 px-3 py-2 text-left"><%= Account::TYPE_LABELS[type] %></th>
+      </tr>
       <% roots.each do |account| %>
         <%= render "account_node", account: account, depth: 0 %>
       <% end %>
-    </ul>
-  </section>
-<% end %>
+    </tbody>
+  <% end %>
+</table>
 
 <%= link_to "New account", new_account_path, class: "mt-8 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" %>

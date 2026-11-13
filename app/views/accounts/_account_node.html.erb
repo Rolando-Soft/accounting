@@ -1,18 +1,14 @@
-<li id="<%= dom_id(account) %>" class="flex items-center justify-between border-b border-gray-100 py-1" style="padding-left: <%= depth * 1.5 %>rem;">
-  <div>
-    <span class="font-medium"><%= account.name %></span>
-    <% if account.description.present? %>
-      <span class="text-gray-500 text-sm ml-2"><%= account.description %></span>
-    <% end %>
-    <% if account.cash_flow_category.present? %>
-      <span class="text-xs bg-gray-200 rounded px-2 py-0.5 ml-2"><%= account.cash_flow_category.titleize %></span>
-    <% end %>
-  </div>
-  <div class="space-x-2 whitespace-nowrap">
-    <%= link_to "Edit", edit_account_path(account), class: "text-blue-600 hover:underline" %>
+<tr id="<%= dom_id(account) %>" class="border border-gray-300">
+  <td class="border border-blue-300 px-3 py-2" style="padding-left: <%= 0.75 + depth * 1.5 %>rem;">
+    <%= "↳ " if depth > 0 %><%= account.name %>
+  </td>
+  <td class="border border-blue-300 px-3 py-2"><%= account.description %></td>
+  <td class="border border-blue-300 px-3 py-2"><%= account.cash_flow_category&.titleize || "—" %></td>
+  <td class="border border-blue-300 px-3 py-2 text-center whitespace-nowrap">
+    <%= link_to "Edit", edit_account_path(account), class: "text-blue-600 hover:underline mr-2" %>
     <%= link_to "Delete", account, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, class: "text-red-600 hover:underline" %>
-  </div>
-</li>
+  </td>
+</tr>
 <% account.children.order(:name).each do |child| %>
   <%= render "account_node", account: child, depth: depth + 1 %>
 <% end %>
