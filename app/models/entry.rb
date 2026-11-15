@@ -12,4 +12,10 @@ class Entry < ApplicationRecord
   def signed_amount
     entry_type == account.normal_balance ? amount : -amount
   end
+
+  RECONCILIATION_CYCLE = { "unreconciled" => "cleared", "cleared" => "reconciled", "reconciled" => "unreconciled" }.freeze
+
+  def next_reconciliation_status
+    RECONCILIATION_CYCLE.fetch(reconciliation_status)
+  end
 end

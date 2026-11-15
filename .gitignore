@@ -37,3 +37,6 @@
 !/app/assets/builds/.keep
 
 /node_modules
+
+# Ignore local Claude Code settings (per-machine, not shared).
+/.claude/settings.local.json

@@ -2,9 +2,13 @@ class JournalTransaction < ApplicationRecord
   has_many :entries, dependent: :destroy
   accepts_nested_attributes_for :entries, allow_destroy: true, reject_if: :all_blank
 
+  # Set when the user has confirmed a change to a reconciled entry.
+  attr_accessor :allow_reconciled_changes
+
   validates :date, presence: true
   validate :balanced_entries
   validate :minimum_two_entries
+  validate :protect_reconciled_entries
 
   # Fuzzy-matches `term` against `payee`: a plain substring match always
   # counts, and a short Levenshtein distance catches typos (e.g. "Amazn").
@@ -51,6 +55,19 @@ class JournalTransaction < ApplicationRecord
   def minimum_two_entries
     if entries.reject(&:marked_for_destruction?).size < 2
       errors.add(:base, "Transaction must have at least two entries")
+    end
+  end
+
+  PROTECTED_ENTRY_ATTRIBUTES = %w[account_id amount entry_type].freeze
+
+  def protect_reconciled_entries
+    return if allow_reconciled_changes
+
+    entries.each do |entry|
+      next unless entry.persisted? && entry.reconciliation_status_was == "reconciled"
+      next unless entry.marked_for_destruction? || PROTECTED_ENTRY_ATTRIBUTES.any? { |attr| entry.attribute_changed?(attr) }
+
+      errors.add(:base, "#{entry.account.name} is reconciled: changing or removing this entry will affect previously reconciled balances. Confirm to proceed.")
     end
   end
 end

@@ -1,4 +1,24 @@
+<% has_reconciled_entries = journal_transaction.entries.any? { |e| e.persisted? && e.reconciled? } %>
+
+<% if journal_transaction.errors.any? %>
+  <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+    <ul class="list-disc list-inside">
+      <% journal_transaction.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
+
+<% if has_reconciled_entries %>
+  <div class="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded mb-4">
+    This transaction includes a reconciled entry. Changing or removing it will affect previously reconciled balances.
+  </div>
+<% end %>
+
 <%= form_with(model: journal_transaction) do |form| %>
+  <%= form.hidden_field :allow_reconciled_changes, value: "1" if has_reconciled_entries %>
+
   <div class="mb-4">
     <%= form.label :date, class: "block text-gray-700 font-bold mb-2" %>
     <%= form.date_field :date, class: "border rounded px-3 py-2 w-full" %>
@@ -47,6 +67,7 @@
   </div>
 
   <div class="flex items-center">
-    <%= form.submit "Save Journal Transaction", class: "bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" %>
+    <%= form.submit "Save Journal Transaction", class: "bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600",
+          data: (has_reconciled_entries ? { turbo_confirm: "This transaction includes a reconciled entry. Saving changes will affect previously reconciled balances. Continue?" } : {}) %>
   </div>
 <% end %>

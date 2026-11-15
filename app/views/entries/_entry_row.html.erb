@@ -13,8 +13,17 @@
   <td class="border border-blue-300 px-3 py-2">
     <%= form_with model: entry, url: entry_path(entry), method: :patch do |form| %>
       <%= hidden_field_tag :return_to, request.fullpath %>
-      <%= form.select :reconciliation_status, Entry.reconciliation_statuses.keys.map { |s| [s.titleize, s] },
-            {}, onchange: "this.form.requestSubmit()", class: "border rounded px-1 py-0.5 text-sm" %>
+      <%= form.hidden_field :reconciliation_status, value: entry.next_reconciliation_status %>
+      <%= tag.button type: "submit",
+            title: "#{entry.reconciliation_status.titleize} (click for #{entry.next_reconciliation_status.titleize})",
+            class: "w-5 h-5 border-2 border-gray-500 rounded flex items-center justify-center mx-auto hover:border-blue-500",
+            data: (entry.reconciled? ? { turbo_confirm: "This entry is reconciled. Changing its status will affect previously reconciled balances. Continue?" } : {}) do %>
+        <% if entry.cleared? %>
+          <%= tag.span "", class: "w-2.5 h-2.5 rounded-full bg-gray-700" %>
+        <% elsif entry.reconciled? %>
+          <%= tag.span "✓", class: "text-gray-700 text-xs leading-none font-bold" %>
+        <% end %>
+      <% end %>
     <% end %>
   </td>
 </tr>
