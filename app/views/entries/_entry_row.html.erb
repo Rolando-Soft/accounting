@@ -1,5 +1,8 @@
 <% other_entries = entry.journal_transaction.entries.reject { |e| e.id == entry.id } %>
-<tr id="<%= dom_id(entry) %>" class="border border-gray-300 text-center">
+<tr id="<%= dom_id(entry) %>" class="border border-gray-300 text-center cursor-pointer hover:bg-gray-50"
+    data-controller="row-link"
+    data-row-link-url-value="<%= edit_journal_transaction_path(entry.journal_transaction) %>"
+    data-action="click->row-link#visit">
   <td class="border border-blue-300 px-3 py-2"><%= entry.journal_transaction.date %></td>
   <td class="border border-blue-300 px-3 py-2"><%= entry.journal_transaction.payee %></td>
   <td class="border border-blue-300 px-3 py-2 text-left">
@@ -10,18 +13,22 @@
   <td class="border border-blue-300 px-3 py-2"><%= entry.journal_transaction.description %></td>
   <td class="border border-blue-300 px-3 py-2"><%= number_to_currency(entry.amount) if entry.debit? %></td>
   <td class="border border-blue-300 px-3 py-2"><%= number_to_currency(entry.amount) if entry.credit? %></td>
-  <td class="border border-blue-300 px-3 py-2">
-    <%= form_with model: entry, url: entry_path(entry), method: :patch do |form| %>
-      <%= hidden_field_tag :return_to, request.fullpath %>
-      <%= form.hidden_field :reconciliation_status, value: entry.next_reconciliation_status %>
-      <%= tag.button type: "submit",
-            title: "#{entry.reconciliation_status.titleize} (click for #{entry.next_reconciliation_status.titleize})",
-            class: "w-5 h-5 border-2 border-gray-500 rounded flex items-center justify-center mx-auto hover:border-blue-500",
-            data: (entry.reconciled? ? { turbo_confirm: "This entry is reconciled. Changing its status will affect previously reconciled balances. Continue?" } : {}) do %>
-        <% if entry.cleared? %>
-          <%= tag.span "", class: "w-2.5 h-2.5 rounded-full bg-gray-700" %>
-        <% elsif entry.reconciled? %>
-          <%= tag.span "✓", class: "text-gray-700 text-xs leading-none font-bold" %>
+  <td class="border border-blue-300 px-3 py-2" data-action="click->row-link#ignore:stop">
+    <% if entry.reconciled? %>
+      <%= tag.div title: "Reconciled (locked)",
+            class: "w-5 h-5 border-2 border-gray-400 rounded flex items-center justify-center mx-auto" do %>
+        <%= tag.span "✓", class: "text-gray-700 text-xs leading-none font-bold" %>
+      <% end %>
+    <% else %>
+      <%= form_with model: entry, url: entry_path(entry), method: :patch do |form| %>
+        <%= hidden_field_tag :return_to, @return_to %>
+        <%= form.hidden_field :reconciliation_status, value: entry.next_reconciliation_status %>
+        <%= tag.button type: "submit",
+              title: "#{entry.reconciliation_status.titleize} (click for #{entry.next_reconciliation_status.titleize})",
+              class: "w-5 h-5 border-2 border-gray-500 rounded flex items-center justify-center mx-auto hover:border-blue-500" do %>
+          <% if entry.cleared? %>
+            <%= tag.span "", class: "w-2.5 h-2.5 rounded-full bg-gray-700" %>
+          <% end %>
         <% end %>
       <% end %>
     <% end %>

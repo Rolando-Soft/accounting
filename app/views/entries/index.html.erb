@@ -2,7 +2,7 @@
 <p class="text-green-600 mb-4"><%= notice %></p>
 <p class="text-red-600 mb-4"><%= alert %></p>
 
-<%= form_with url: entries_path, method: :get, class: "mb-6 space-y-4" do |form| %>
+<%= form_with url: entries_path, method: :get, id: "register-filters", class: "mb-6 space-y-4" do |form| %>
   <div>
     <%= form.label :account_id, "Account", class: "block text-gray-700 font-bold mb-1" %>
     <%= form.collection_select :account_id, @accounts, :id, :name, { selected: @account&.id }, class: "border rounded px-3 py-2", onchange: "this.form.requestSubmit()" %>
@@ -10,33 +10,6 @@
       <span class="text-sm text-gray-500 ml-2"><%= Account::TYPE_LABELS[@account.account_type] %></span>
     <% end %>
   </div>
-
-  <% if @account %>
-    <div class="flex flex-wrap gap-10">
-      <div>
-        <div class="text-xl font-bold"><%= number_to_currency(@cleared_balance) %></div>
-        <div class="text-sm text-gray-600">Cleared Balance</div>
-      </div>
-      <div>
-        <div class="text-xl font-bold"><%= number_to_currency(@uncleared_balance) %></div>
-        <div class="text-sm text-gray-600">Uncleared Balance</div>
-      </div>
-      <div>
-        <div class="text-xl font-bold">
-          <%= form.text_field :balance_to_reconcile, value: @balance_to_reconcile, size: 10, class: "border rounded px-2 py-1 w-28" %>
-        </div>
-        <div class="text-sm text-gray-600">Balance to Reconcile</div>
-      </div>
-      <div>
-        <div class="text-xl font-bold"><%= number_to_currency(@pending_to_clear) %></div>
-        <div class="text-sm text-gray-600">Pending to Clear</div>
-      </div>
-      <div>
-        <div class="text-xl font-bold"><%= number_to_currency(@working_balance) %></div>
-        <div class="text-sm text-gray-600">Working Balance</div>
-      </div>
-    </div>
-  <% end %>
 
   <div class="flex flex-wrap items-center gap-6">
     <%= link_to "Add transaction", new_journal_transaction_path, class: "bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" %>
@@ -61,6 +34,38 @@
 <% end %>
 
 <% if @account %>
+  <%
+    difference_is_zero = @difference.round(2).zero?
+    ticked_count = @ticked_entries.size
+  %>
+  <div class="flex flex-wrap items-end gap-10 mb-6" data-controller="difference">
+    <%= render "balance_tile", id: "reconciled-balance-stat", amount: @reconciled_balance, label: "Reconciled" %>
+    <%= render "balance_tile", id: "ticked-balance-stat", amount: @ticked_balance, label: "Ticked" %>
+    <%= render "balance_tile", id: "computed-balance-stat", amount: @computed_balance, label: "Computed", difference_target: "computed" %>
+    <div>
+      <div class="text-xl font-bold">
+        <%= text_field_tag :statement_balance, @statement_balance, size: 10, class: "border rounded px-2 py-1 w-28", form: "register-filters",
+              data: { "difference-target": "input", action: "input->difference#recompute" } %>
+      </div>
+      <div class="text-sm text-gray-600">Statement</div>
+    </div>
+    <%= render "balance_tile", id: "difference-stat", amount: @difference, label: "Difference", difference_target: "output" %>
+    <div class="flex items-end gap-4">
+      <%= render "balance_tile", id: "working-balance-stat", amount: @working_balance, label: "Working Balance" %>
+      <%= form_with url: reconcile_entries_path, method: :post do |f| %>
+        <%= hidden_field_tag :return_to, @return_to, id: "reconcile_return_to" %>
+        <%= f.hidden_field :account_id, value: @account.id, id: "reconcile_account_id" %>
+        <%= f.hidden_field :view_filter, value: @view_filter, id: "reconcile_view_filter" %>
+        <%= f.hidden_field :statement_balance, value: @statement_balance, id: "reconcile_statement_balance", data: { "difference-target": "reconcileStatement" } %>
+        <%= f.submit "Reconcile#{" (#{ticked_count} ticked)" if ticked_count > 0}",
+              disabled: !difference_is_zero,
+              title: difference_is_zero ? "Finalize all ticked entries in this view as reconciled" : "Difference must be $0.00 before you can reconcile",
+              data: { turbo_confirm: "Mark #{ticked_count} ticked #{"entry".pluralize(ticked_count)} as reconciled?", "difference-target": "reconcileButton" },
+              class: "px-4 py-2 rounded text-white #{difference_is_zero ? "bg-green-600 hover:bg-green-700" : "bg-gray-400 cursor-not-allowed"}" %>
+      <% end %>
+    </div>
+  </div>
+
   <table class="table-auto w-full">
     <thead>
       <tr>

@@ -1,0 +1,5 @@
+<div id="<%= id %>">
+  <%= tag.div number_to_currency(amount), class: "text-xl font-bold",
+        data: (local_assigns[:difference_target] ? { "difference-target": local_assigns[:difference_target] } : {}) %>
+  <div class="text-sm text-gray-600"><%= label %></div>
+</div>

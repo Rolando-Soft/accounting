@@ -6,3 +6,9 @@ import { application } from "./application"
 
 import HelloController from "./hello_controller"
 application.register("hello", HelloController)
+
+import RowLinkController from "./row_link_controller"
+application.register("row-link", RowLinkController)
+
+import DifferenceController from "./difference_controller"
+application.register("difference", DifferenceController)

@@ -1,0 +1,6 @@
+<%= turbo_stream.replace dom_id(@entry), partial: "entries/entry_row", locals: { entry: @entry } %>
+<%= turbo_stream.replace "reconciled-balance-stat", partial: "entries/balance_tile", locals: { id: "reconciled-balance-stat", amount: @reconciled_balance, label: "Reconciled" } %>
+<%= turbo_stream.replace "ticked-balance-stat", partial: "entries/balance_tile", locals: { id: "ticked-balance-stat", amount: @ticked_balance, label: "Ticked" } %>
+<%= turbo_stream.replace "computed-balance-stat", partial: "entries/balance_tile", locals: { id: "computed-balance-stat", amount: @computed_balance, label: "Computed", difference_target: "computed" } %>
+<%= turbo_stream.replace "difference-stat", partial: "entries/balance_tile", locals: { id: "difference-stat", amount: @difference, label: "Difference", difference_target: "output" } %>
+<%= turbo_stream.replace "working-balance-stat", partial: "entries/balance_tile", locals: { id: "working-balance-stat", amount: @working_balance, label: "Working Balance" } %>

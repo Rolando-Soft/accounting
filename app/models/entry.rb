@@ -13,9 +13,12 @@ class Entry < ApplicationRecord
     entry_type == account.normal_balance ? amount : -amount
   end
 
-  RECONCILIATION_CYCLE = { "unreconciled" => "cleared", "cleared" => "reconciled", "reconciled" => "unreconciled" }.freeze
+  # Day-to-day toggling only moves an entry between unreconciled and
+  # cleared ("ticked"). Becoming reconciled happens only in bulk, via the
+  # register's Reconcile button, once the statement difference is zero.
+  RECONCILIATION_CYCLE = { "unreconciled" => "cleared", "cleared" => "unreconciled" }.freeze
 
   def next_reconciliation_status
-    RECONCILIATION_CYCLE.fetch(reconciliation_status)
+    RECONCILIATION_CYCLE.fetch(reconciliation_status, reconciliation_status)
   end
 end
