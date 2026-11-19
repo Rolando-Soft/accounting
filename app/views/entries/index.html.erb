@@ -34,10 +34,7 @@
 <% end %>
 
 <% if @account %>
-  <%
-    difference_is_zero = @difference.round(2).zero?
-    ticked_count = @ticked_entries.size
-  %>
+  <% difference_is_zero = @difference.round(2).zero? %>
   <div class="flex flex-wrap items-end gap-10 mb-6" data-controller="difference">
     <%= render "balance_tile", id: "reconciled-balance-stat", amount: @reconciled_balance, label: "Reconciled" %>
     <%= render "balance_tile", id: "ticked-balance-stat", amount: @ticked_balance, label: "Ticked" %>
@@ -57,10 +54,10 @@
         <%= f.hidden_field :account_id, value: @account.id, id: "reconcile_account_id" %>
         <%= f.hidden_field :view_filter, value: @view_filter, id: "reconcile_view_filter" %>
         <%= f.hidden_field :statement_balance, value: @statement_balance, id: "reconcile_statement_balance", data: { "difference-target": "reconcileStatement" } %>
-        <%= f.submit "Reconcile#{" (#{ticked_count} ticked)" if ticked_count > 0}",
+        <%= f.submit "Reconcile",
               disabled: !difference_is_zero,
               title: difference_is_zero ? "Finalize all ticked entries in this view as reconciled" : "Difference must be $0.00 before you can reconcile",
-              data: { turbo_confirm: "Mark #{ticked_count} ticked #{"entry".pluralize(ticked_count)} as reconciled?", "difference-target": "reconcileButton" },
+              data: { turbo_confirm: "Mark all ticked entries in this view as reconciled?", "difference-target": "reconcileButton" },
               class: "px-4 py-2 rounded text-white #{difference_is_zero ? "bg-green-600 hover:bg-green-700" : "bg-gray-400 cursor-not-allowed"}" %>
       <% end %>
     </div>
