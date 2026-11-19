@@ -32,6 +32,10 @@
           <label class="block text-gray-700 font-bold mb-1">Amount:</label>
           <p class="border rounded px-3 py-2 bg-gray-100"><%= number_to_currency(entry.amount) %></p>
         </div>
+        <div class="mb-2">
+          <label class="block text-gray-700 font-bold mb-1">Description:</label>
+          <p class="border rounded px-3 py-2 bg-gray-100"><%= entry.description %></p>
+        </div>
         <div>
           <label class="block text-gray-700 font-bold mb-1">Reconciliation Status:</label>
           <p class="border rounded px-3 py-2 bg-gray-100"><%= entry.reconciliation_status.titleize %></p>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_11_12_110000) do
+ActiveRecord::Schema[8.0].define(version: 2026_11_19_193500) do
   create_table "accounts", force: :cascade do |t|
     t.string "name"
     t.integer "account_type"
@@ -30,6 +30,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_11_12_110000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "reconciliation_status", default: 0, null: false
+    t.string "description"
     t.index ["account_id", "created_at"], name: "index_entries_on_account_id_and_created_at"
     t.index ["journal_transaction_id"], name: "index_entries_on_journal_transaction_id"
     t.index ["reconciliation_status"], name: "index_entries_on_reconciliation_status"

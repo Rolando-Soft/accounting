@@ -51,6 +51,10 @@
             <%= entry_form.label :amount, class: "block text-gray-700 font-bold mb-1" %>
             <%= entry_form.number_field :amount, step: 0.01, class: "border rounded px-3 py-2 w-full" %>
           </div>
+          <div class="mb-2">
+            <%= entry_form.label :description, class: "block text-gray-700 font-bold mb-1" %>
+            <%= entry_form.text_field :description, class: "border rounded px-3 py-2 w-full" %>
+          </div>
           <div>
             <%= entry_form.label :reconciliation_status, class: "block text-gray-700 font-bold mb-1" %>
             <%= entry_form.select :reconciliation_status, Entry.reconciliation_statuses.keys.map { |s| [s.titleize, s] }, {}, class: "border rounded px-3 py-2 w-full" %>

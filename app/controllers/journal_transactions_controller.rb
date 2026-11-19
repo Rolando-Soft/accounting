@@ -36,6 +36,6 @@ class JournalTransactionsController < ApplicationController
 
   private
   def journal_transaction_params
-    params.require(:journal_transaction).permit(:date, :description, :payee, :allow_reconciled_changes, entries_attributes: [:id, :account_id, :amount, :entry_type, :reconciliation_status, :_destroy])
+    params.require(:journal_transaction).permit(:date, :description, :payee, :allow_reconciled_changes, entries_attributes: [:id, :account_id, :amount, :entry_type, :reconciliation_status, :description, :_destroy])
   end
 end

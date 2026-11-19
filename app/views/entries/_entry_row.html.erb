@@ -11,6 +11,7 @@
     <% end %>
   </td>
   <td class="border border-blue-300 px-3 py-2"><%= entry.journal_transaction.description %></td>
+  <td class="border border-blue-300 px-3 py-2"><%= entry.description %></td>
   <td class="border border-blue-300 px-3 py-2"><%= number_to_currency(entry.amount) if entry.debit? %></td>
   <td class="border border-blue-300 px-3 py-2"><%= number_to_currency(entry.amount) if entry.credit? %></td>
   <td class="border border-blue-300 px-3 py-2" data-action="click->row-link#ignore:stop">
