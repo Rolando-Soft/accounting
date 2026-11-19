@@ -1,7 +1,7 @@
 <% other_entries = entry.journal_transaction.entries.reject { |e| e.id == entry.id } %>
 <tr id="<%= dom_id(entry) %>" class="border border-gray-300 text-center cursor-pointer hover:bg-gray-50"
     data-controller="row-link"
-    data-row-link-url-value="<%= edit_journal_transaction_path(entry.journal_transaction) %>"
+    data-row-link-url-value="<%= edit_journal_transaction_path(entry.journal_transaction, register_account_id: entry.account_id, return_to: @return_to) %>"
     data-action="click->row-link#visit">
   <td class="border border-blue-300 px-3 py-2"><%= entry.journal_transaction.date %></td>
   <td class="border border-blue-300 px-3 py-2"><%= entry.journal_transaction.payee %></td>

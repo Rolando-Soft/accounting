@@ -1,4 +1,10 @@
 <% has_reconciled_entries = journal_transaction.entries.any? { |e| e.persisted? && e.reconciled? } %>
+<%
+  matches, other_entries = journal_transaction.entries.partition { |e| @register_account_id && e.account_id == @register_account_id }
+  locked_entry = matches.shift
+  other_entries = matches + other_entries
+  ordered_entries = [locked_entry, *other_entries].compact
+%>
 
 <% if journal_transaction.errors.any? %>
   <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -18,6 +24,8 @@
 
 <%= form_with(model: journal_transaction) do |form| %>
   <%= form.hidden_field :allow_reconciled_changes, value: "1" if has_reconciled_entries %>
+  <%= hidden_field_tag :register_account_id, @register_account_id if @register_account_id %>
+  <%= hidden_field_tag :return_to, @return_to if @return_to %>
 
   <div class="mb-4">
     <%= form.label :date, class: "block text-gray-700 font-bold mb-2" %>
@@ -34,44 +42,46 @@
     <%= form.text_field :description, class: "border rounded px-3 py-2 w-full" %>
   </div>
 
-  <div>
+  <div data-controller="journal-form">
     <h3 class="text-lg font-bold mb-2">Entries</h3>
-    <div id="entries" class="space-y-4">
-      <%= form.fields_for :entries do |entry_form| %>
-        <div class="border p-4 rounded bg-gray-50">
-          <div class="mb-2">
-            <%= entry_form.label :account_id, "Account", class: "block text-gray-700 font-bold mb-1" %>
-            <%= entry_form.collection_select :account_id, Account.all, :id, :name, { prompt: "Select Account" }, class: "border rounded px-3 py-2 w-full" %>
-          </div>
-          <div class="mb-2">
-            <%= entry_form.label :entry_type, class: "block text-gray-700 font-bold mb-1" %>
-            <%= entry_form.select :entry_type, [['Debit', 'debit'], ['Credit', 'credit']], {}, class: "border rounded px-3 py-2 w-full" %>
-          </div>
-          <div class="mb-2">
-            <%= entry_form.label :amount, class: "block text-gray-700 font-bold mb-1" %>
-            <%= entry_form.number_field :amount, step: 0.01, class: "border rounded px-3 py-2 w-full" %>
-          </div>
-          <div class="mb-2">
-            <%= entry_form.label :description, class: "block text-gray-700 font-bold mb-1" %>
-            <%= entry_form.text_field :description, class: "border rounded px-3 py-2 w-full" %>
-          </div>
-          <div>
-            <%= entry_form.label :reconciliation_status, class: "block text-gray-700 font-bold mb-1" %>
-            <%= entry_form.select :reconciliation_status, Entry.reconciliation_statuses.keys.map { |s| [s.titleize, s] }, {}, class: "border rounded px-3 py-2 w-full" %>
-          </div>
-          <div class="text-right">
-            <button type="button" class="remove-entry bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Remove Entry</button>
-          </div>
-        </div>
+
+    <div class="grid grid-cols-[2fr_2fr_1fr_1fr_auto_auto] gap-2 text-gray-700 font-bold mb-1 text-sm">
+      <div>Account</div>
+      <div>Description</div>
+      <div>DB</div>
+      <div>CR</div>
+      <div class="text-center">R</div>
+      <div><span class="invisible font-bold px-2">x</span></div>
+    </div>
+
+    <div data-journal-form-target="container">
+      <%= form.fields_for :entries, ordered_entries do |entry_form| %>
+        <%= render "entry_fields", entry_form: entry_form, locked: entry_form.object.equal?(locked_entry) %>
       <% end %>
     </div>
-    <div class="mt-4">
-      <button type="button" id="add-entry" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Add Entry</button>
-    </div>
-  </div>
 
-  <div class="flex items-center">
-    <%= form.submit "Save Journal Transaction", class: "bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600",
-          data: (has_reconciled_entries ? { turbo_confirm: "This transaction includes a reconciled entry. Saving changes will affect previously reconciled balances. Continue?" } : {}) %>
+    <template data-journal-form-target="template">
+      <%= form.fields_for :entries, Entry.new, child_index: "NEW_RECORD" do |entry_form| %>
+        <%= render "entry_fields", entry_form: entry_form, locked: false %>
+      <% end %>
+    </template>
+
+    <div class="mt-2">
+      <button type="button" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600" data-action="click->journal-form#add">Entry add</button>
+    </div>
+
+    <div class="grid grid-cols-[2fr_2fr_1fr_1fr_auto_auto] gap-2 items-center mt-4 font-bold">
+      <div></div>
+      <div class="text-right">Total</div>
+      <div data-journal-form-target="totalDebit">0.00</div>
+      <div data-journal-form-target="totalCredit">0.00</div>
+      <div></div>
+      <div></div>
+    </div>
+
+    <div class="flex items-center mt-4">
+      <%= form.submit "Submit Journal Entry", class: "bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed",
+            data: { "journal-form-target": "submit", turbo_confirm: (has_reconciled_entries ? "This transaction includes a reconciled entry. Saving changes will affect previously reconciled balances. Continue?" : nil) } %>
+    </div>
   </div>
 <% end %>

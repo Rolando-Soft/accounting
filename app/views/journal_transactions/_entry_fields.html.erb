@@ -1,0 +1,38 @@
+<%
+  entry = entry_form.object
+  debit_value = entry.debit_amount || (entry.debit? ? entry.amount : nil)
+  credit_value = entry.credit_amount || (entry.credit? ? entry.amount : nil)
+%>
+<div class="grid grid-cols-[2fr_2fr_1fr_1fr_auto_auto] gap-2 items-center mb-2" data-journal-form-target="row">
+  <% if locked %>
+    <%= entry_form.hidden_field :account_id %>
+    <div class="border rounded px-3 py-2 bg-gray-100 text-gray-700"><%= entry.account&.name || "This account" %></div>
+  <% else %>
+    <%= entry_form.collection_select :account_id, Account.all, :id, :name, { prompt: "Select Account" }, class: "border rounded px-3 py-2 w-full" %>
+  <% end %>
+
+  <%= entry_form.text_field :description, class: "border rounded px-3 py-2 w-full" %>
+
+  <%= entry_form.text_field :debit_amount, value: debit_value, readonly: locked,
+        class: "border rounded px-3 py-2 w-full #{"bg-gray-100 text-gray-700" if locked}",
+        data: { "journal-form-target": locked ? "lockedDebit" : "debit", action: locked ? nil : "input->journal-form#recompute" } %>
+
+  <%= entry_form.text_field :credit_amount, value: credit_value, readonly: locked,
+        class: "border rounded px-3 py-2 w-full #{"bg-gray-100 text-gray-700" if locked}",
+        data: { "journal-form-target": locked ? "lockedCredit" : "credit", action: locked ? nil : "input->journal-form#recompute" } %>
+
+  <label class="flex items-center justify-center" title="Mark reconciled">
+    <%= entry_form.check_box :mark_reconciled, checked: entry.reconciled?, class: "w-4 h-4" %>
+  </label>
+
+  <% if locked %>
+    <span class="invisible font-bold px-2">x</span>
+  <% else %>
+    <button type="button" class="text-red-600 hover:text-red-800 font-bold px-2" title="Delete entry" data-action="click->journal-form#remove">x</button>
+  <% end %>
+
+  <% if entry.persisted? %>
+    <%= entry_form.hidden_field :id %>
+    <%= entry_form.hidden_field :_destroy, value: "0" %>
+  <% end %>
+</div>

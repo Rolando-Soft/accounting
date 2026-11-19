@@ -6,4 +6,4 @@
 
 <br>
 
-<%= link_to "Back", journal_transactions_path, class: "text-blue-600 hover:underline" %>
+<%= link_to "Back", @return_to.presence || journal_transactions_path, class: "text-blue-600 hover:underline" %>

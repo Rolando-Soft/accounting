@@ -12,3 +12,6 @@ application.register("row-link", RowLinkController)
 
 import DifferenceController from "./difference_controller"
 application.register("difference", DifferenceController)
+
+import JournalFormController from "./journal_form_controller"
+application.register("journal-form", JournalFormController)

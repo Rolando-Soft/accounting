@@ -12,7 +12,7 @@
   </div>
 
   <div class="flex flex-wrap items-center gap-6">
-    <%= link_to "Add transaction", new_journal_transaction_path, class: "bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" %>
+    <%= link_to "Add transaction", new_journal_transaction_path(register_account_id: @account.id, return_to: @return_to), class: "bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" %>
 
     <div>
       <%= form.label :view_filter, "View Filter", class: "font-bold mr-2" %>
