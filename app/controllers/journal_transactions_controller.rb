@@ -47,6 +47,12 @@ class JournalTransactionsController < ApplicationController
     end
   end
 
+  def destroy
+    @journal_transaction = JournalTransaction.find(params[:id])
+    @journal_transaction.destroy
+    redirect_to params[:return_to].presence || journal_transactions_path, notice: "Journal transaction deleted."
+  end
+
   private
   def journal_transaction_params
     params.require(:journal_transaction).permit(:date, :description, :payee, :allow_reconciled_changes,

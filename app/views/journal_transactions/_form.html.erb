@@ -67,7 +67,7 @@
     </template>
 
     <div class="mt-2">
-      <button type="button" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600" data-action="click->journal-form#add">Entry add</button>
+      <button type="button" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" data-action="click->journal-form#add">Entry add</button>
     </div>
 
     <div class="grid grid-cols-[2fr_2fr_1fr_1fr_auto_auto] gap-2 items-center mt-4 font-bold">
@@ -79,9 +79,16 @@
       <div></div>
     </div>
 
-    <div class="flex items-center mt-4">
+    <div class="flex items-center gap-4 mt-4">
       <%= form.submit "Submit Journal Entry", class: "bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed",
             data: { "journal-form-target": "submit", turbo_confirm: (has_reconciled_entries ? "This transaction includes a reconciled entry. Saving changes will affect previously reconciled balances. Continue?" : nil) } %>
+
+      <% if journal_transaction.persisted? %>
+        <%= link_to "Delete transaction", journal_transaction_path(journal_transaction, return_to: @return_to),
+              class: "bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700",
+              data: { turbo_method: :delete,
+                turbo_confirm: has_reconciled_entries ? "This transaction includes a reconciled entry: deleting it will affect previously reconciled balances. Delete anyway?" : "Delete this transaction?" } %>
+      <% end %>
     </div>
   </div>
 <% end %>
