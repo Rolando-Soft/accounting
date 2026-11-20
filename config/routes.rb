@@ -10,6 +10,10 @@ Rails.application.routes.draw do
     end
   end
   resources :accounts, except: :show
+
+  get "reports", to: "reports#index", as: :reports
+  get "reports/balance_sheet", to: "reports#balance_sheet", as: :balance_sheet
+  get "reports/income_statement", to: "reports#income_statement", as: :income_statement
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

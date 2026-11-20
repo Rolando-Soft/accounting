@@ -1,0 +1,43 @@
+<% content_for :title, "Balance Sheet" %>
+<h1 class="text-2xl font-bold mb-6">Balance Sheet</h1>
+
+<%= form_with url: balance_sheet_path, method: :get, class: "mb-6 flex items-center gap-2" do |form| %>
+  <%= form.label :as_of, "As of", class: "font-bold" %>
+  <%= form.date_field :as_of, value: @as_of, class: "border rounded px-3 py-2", onchange: "this.form.requestSubmit()" %>
+<% end %>
+
+<table class="table-auto w-full mb-6">
+  <thead>
+    <tr>
+      <th class="border border-blue-300 px-3 py-2 text-left">Account</th>
+      <th class="border border-blue-300 px-3 py-2 text-right">Balance</th>
+    </tr>
+  </thead>
+  <% [["asset", "Assets", @total_assets], ["liability", "Liabilities", @total_liabilities], ["equity", "Equity", @total_equity]].each do |type, label, total| %>
+    <tbody>
+      <tr class="bg-gray-100">
+        <th colspan="2" class="border border-blue-300 px-3 py-2 text-left"><%= label %></th>
+      </tr>
+      <% @accounts_by_type[type].each do |account, balance| %>
+        <tr>
+          <td class="border border-blue-300 px-3 py-2"><%= account.name %></td>
+          <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(balance) %></td>
+        </tr>
+      <% end %>
+      <tr class="font-bold">
+        <td class="border border-blue-300 px-3 py-2">Total <%= label %></td>
+        <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(total) %></td>
+      </tr>
+    </tbody>
+  <% end %>
+</table>
+
+<% difference = (@total_assets - (@total_liabilities + @total_equity)).round(2) %>
+<div class="font-bold">
+  Liabilities + Equity: <%= number_to_currency(@total_liabilities + @total_equity) %>
+  <% if difference.zero? %>
+    <span class="text-green-600 ml-4">Balanced</span>
+  <% else %>
+    <span class="text-red-600 ml-4">Out of balance by <%= number_to_currency(difference) %></span>
+  <% end %>
+</div>

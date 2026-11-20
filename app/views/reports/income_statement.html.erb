@@ -1,0 +1,43 @@
+<% content_for :title, "Income Statement" %>
+<h1 class="text-2xl font-bold mb-6">Income Statement</h1>
+
+<%= form_with url: income_statement_path, method: :get, class: "mb-6 flex items-center gap-4" do |form| %>
+  <div>
+    <%= form.label :start_date, "From", class: "font-bold mr-2" %>
+    <%= form.date_field :start_date, value: @start_date, class: "border rounded px-3 py-2", onchange: "this.form.requestSubmit()" %>
+  </div>
+  <div>
+    <%= form.label :end_date, "To", class: "font-bold mr-2" %>
+    <%= form.date_field :end_date, value: @end_date, class: "border rounded px-3 py-2", onchange: "this.form.requestSubmit()" %>
+  </div>
+<% end %>
+
+<table class="table-auto w-full mb-6">
+  <thead>
+    <tr>
+      <th class="border border-blue-300 px-3 py-2 text-left">Account</th>
+      <th class="border border-blue-300 px-3 py-2 text-right">Balance</th>
+    </tr>
+  </thead>
+  <% [["income", "Income", @total_income], ["expense", "Expense", @total_expense]].each do |type, label, total| %>
+    <tbody>
+      <tr class="bg-gray-100">
+        <th colspan="2" class="border border-blue-300 px-3 py-2 text-left"><%= label %></th>
+      </tr>
+      <% @accounts_by_type[type].each do |account, balance| %>
+        <tr>
+          <td class="border border-blue-300 px-3 py-2"><%= account.name %></td>
+          <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(balance) %></td>
+        </tr>
+      <% end %>
+      <tr class="font-bold">
+        <td class="border border-blue-300 px-3 py-2">Total <%= label %></td>
+        <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(total) %></td>
+      </tr>
+    </tbody>
+  <% end %>
+</table>
+
+<div class="font-bold">
+  Net Income: <span class="<%= @net_income.negative? ? "text-red-600" : "text-green-600" %>"><%= number_to_currency(@net_income) %></span>
+</div>
