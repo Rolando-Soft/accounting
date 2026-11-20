@@ -36,6 +36,10 @@ class Account < ApplicationRecord
     NORMAL_BALANCE[account_type]
   end
 
+  def label_with_type
+    "#{name} (#{TYPE_LABELS[account_type]})"
+  end
+
   validates :name, presence: true, uniqueness: true
   validates :account_type, presence: true
   validates :description, length: { maximum: 500 }

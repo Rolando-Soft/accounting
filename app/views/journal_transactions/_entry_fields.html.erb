@@ -9,7 +9,7 @@
     <div class="border rounded px-3 py-2 bg-gray-100 text-gray-700"><%= entry.account&.name || "This account" %></div>
   <% else %>
     <div class="relative" data-controller="account-combobox">
-      <%= entry_form.collection_select :account_id, Account.ordered_by_type, :id, :name, { prompt: "Select Account" }, class: "hidden",
+      <%= entry_form.collection_select :account_id, Account.ordered_by_type, :id, :label_with_type, { prompt: "Select Account" }, class: "hidden",
             data: { "account-combobox-target": "select" } %>
       <input type="text" class="border rounded px-3 py-2 w-full" placeholder="Select Account" autocomplete="off"
             data-account-combobox-target="input"
