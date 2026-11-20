@@ -27,6 +27,20 @@ class ReportsController < ApplicationController
     @columns = @ranges.map { |from, to| income_statement_column(from, to) }
   end
 
+  # Direct method: cash accounts are the asset accounts, and every other
+  # account's entries are bucketed by its cash_flow_category. Because a
+  # balanced transaction's debits and credits always net to zero, the
+  # total across non-cash entries (negated) always equals cash's own
+  # actual change — true regardless of how a transaction is split, with
+  # no need to pair up entries. One column per calendar month, most
+  # recent first, same as the Income Statement.
+  def cash_flow_statement
+    @end_date = parse_date(params[:end_date]) || Date.current
+    @periods = (params[:periods].presence || "1").to_i.clamp(1, 3)
+    @ranges = period_ranges(@end_date, @periods)
+    @columns = @ranges.map { |from, to| cash_flow_column(from, to) }
+  end
+
   private
 
   def parse_date(value)
@@ -127,5 +141,41 @@ class ReportsController < ApplicationController
         date && date <= upto && (from.nil? || date >= from)
       end.sum(&:signed_amount)
     end.transform_keys(&:id)
+  end
+
+  def cash_flow_column(from, to)
+    category_rows = non_cash_category_balances(from: from, upto: to)
+    category_totals = category_rows.transform_values { |rows| rows.sum { |_account, effect| effect } }
+    net_change = category_totals.values.sum
+
+    beginning_cash = balances_by_account(%w[asset], upto: from - 1.day).values.sum
+    ending_cash = balances_by_account(%w[asset], upto: to).values.sum
+
+    { from: from, to: to, category_rows: category_rows, category_totals: category_totals,
+      net_change: net_change, beginning_cash: beginning_cash, ending_cash: ending_cash }
+  end
+
+  # { "operating" => [[account, cash_effect], ...], "investing" => [...],
+  # "financing" => [...], "uncategorized" => [...] } for every non-asset
+  # account with entries in [from, upto]. cash_effect is the entry's
+  # effect on cash — the negation of its own debit-positive total, per
+  # the zero-sum identity above — not the account's own normal-balance
+  # change (that's what signed_amount gives, and it isn't equivalent once
+  # debit/credit and normal balance disagree, e.g. paying down a
+  # liability).
+  def non_cash_category_balances(upto:, from:)
+    accounts = Account.where.not(account_type: "asset").includes(entries: :journal_transaction)
+    grouped = accounts.group_by { |account| account.cash_flow_category || "uncategorized" }
+
+    %w[operating investing financing uncategorized].index_with do |category|
+      (grouped[category] || []).map do |account|
+        raw_delta = account.entries.select do |entry|
+          date = entry.journal_transaction.date
+          date && date >= from && date <= upto
+        end.sum { |entry| entry.debit? ? entry.amount : -entry.amount }
+
+        [account, -raw_delta]
+      end.sort_by { |account, _effect| account.name }
+    end
   end
 end
