@@ -33,14 +33,21 @@ class Entry < ApplicationRecord
     end
   end
 
-  # The form's R checkbox is a one-way action ("mark reconciled"), not a
-  # full status dropdown — leaving it unchecked never changes an entry's
-  # existing status. Same eager-assignment reasoning as above.
+  # The form's R checkbox mirrors an entry's reconciled state: checking it
+  # reconciles the entry, unchecking a previously-reconciled entry reverts
+  # it to unreconciled (the register locks reconciled entries, so the
+  # transaction edit form is the only place to undo a reconciliation).
+  # Leaving it unchecked on an already-unreconciled/cleared entry is a
+  # no-op. Same eager-assignment reasoning as above.
   attr_reader :mark_reconciled
 
   def mark_reconciled=(value)
     @mark_reconciled = value
-    self.reconciliation_status = "reconciled" if ActiveModel::Type::Boolean.new.cast(value)
+    if ActiveModel::Type::Boolean.new.cast(value)
+      self.reconciliation_status = "reconciled"
+    elsif reconciliation_status == "reconciled"
+      self.reconciliation_status = "unreconciled"
+    end
   end
 
   # Amount signed so that summing it moves the account's balance in the
