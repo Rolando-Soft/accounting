@@ -24,6 +24,12 @@
           <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(balance) %></td>
         </tr>
       <% end %>
+      <% if type == "equity" %>
+        <tr>
+          <td class="border border-blue-300 px-3 py-2">Current Earnings <span class="text-gray-500 text-sm">(net income to date)</span></td>
+          <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(@current_earnings) %></td>
+        </tr>
+      <% end %>
       <tr class="font-bold">
         <td class="border border-blue-300 px-3 py-2">Total <%= label %></td>
         <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(total) %></td>

@@ -7,7 +7,16 @@ class ReportsController < ApplicationController
     @accounts_by_type = balances_by_type(%w[asset liability equity], upto: @as_of)
     @total_assets = @accounts_by_type["asset"].sum { |_account, balance| balance }
     @total_liabilities = @accounts_by_type["liability"].sum { |_account, balance| balance }
-    @total_equity = @accounts_by_type["equity"].sum { |_account, balance| balance }
+
+    # Income/expense accounts reset each period and aren't themselves part
+    # of equity, but the balance sheet still needs their net effect on it —
+    # otherwise assets would never equal liabilities + equity without an
+    # explicit period-close step. "Current Earnings" is that net effect
+    # (all income minus all expense since inception, through as_of), shown
+    # as a computed equity line rather than a real account.
+    income_and_expense = balances_by_type(%w[income expense], upto: @as_of)
+    @current_earnings = income_and_expense["income"].sum { |_a, b| b } - income_and_expense["expense"].sum { |_a, b| b }
+    @total_equity = @accounts_by_type["equity"].sum { |_account, balance| balance } + @current_earnings
   end
 
   def income_statement
