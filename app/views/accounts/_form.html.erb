@@ -26,8 +26,10 @@
   </div>
 
   <div class="mb-4">
-    <%= form.label :cash_flow_category, class: "block text-gray-700 font-semibold mb-1" %>
-    <%= form.select :cash_flow_category, Account.cash_flow_categories.keys.map{ |key| [key.titleize, key] }, { include_blank: true }, class: "w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300" %>
+    <%= form.label :cash_flow_category, class: "block text-gray-700 font-semibold mb-1" do %>
+      Cash flow category <span class="text-red-600">*</span>
+    <% end %>
+    <%= form.select :cash_flow_category, Account.cash_flow_categories.keys.map{ |key| [key.titleize, key] }, { include_blank: "Select a category", selected: account.cash_flow_category }, { class: "w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300", required: true } %>
   </div>
 
   <div class="mb-4">

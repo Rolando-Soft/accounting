@@ -42,6 +42,7 @@ class Account < ApplicationRecord
 
   validates :name, presence: true, uniqueness: true
   validates :account_type, presence: true
+  validates :cash_flow_category, presence: true
   validates :description, length: { maximum: 500 }
   validate :parent_cannot_be_self
   validate :parent_must_have_same_account_type
