@@ -36,7 +36,9 @@
         <% next if row[:depth].positive? && !@show_children %>
         <% account = row[:account] %>
         <tr>
-          <td class="border border-blue-300 px-3 py-2" style="padding-left: <%= 0.75 + row[:depth] * 1.5 %>rem"><%= account.name %></td>
+          <td class="border border-blue-300 px-3 py-2" style="padding-left: <%= 0.75 + row[:depth] * 1.5 %>rem">
+            <%= link_to account.name, account_ledger_path(account_id: account.id), class: "text-blue-600 hover:underline" %>
+          </td>
           <% @columns.each do |column| %>
             <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(column[:rollups][type][account.id]) %></td>
           <% end %>

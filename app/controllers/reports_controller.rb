@@ -1,4 +1,6 @@
 class ReportsController < ApplicationController
+  include DateRangeFilterable
+
   def index
   end
 
@@ -39,6 +41,36 @@ class ReportsController < ApplicationController
     @periods = (params[:periods].presence || "1").to_i.clamp(1, 3)
     @ranges = period_ranges(@end_date, @periods)
     @columns = @ranges.map { |from, to| cash_flow_column(from, to) }
+  end
+
+  # A single account's transaction history — every entry posted to it,
+  # oldest first, with a running balance — so a Balance Sheet/Income
+  # Statement line can be drilled into. Any account type is selectable
+  # (unlike the bank-account-only register), since this isn't about
+  # reconciling against a statement.
+  def account_ledger
+    @accounts = Account.ordered_by_type
+    @account = @accounts.find_by(id: params[:account_id]) || @accounts.first
+    @view_filter = normalize_view_filter(params[:view_filter])
+
+    if @account
+      from, to = view_filter_range(@view_filter)
+      all_entries = @account.entries.includes(journal_transaction: { entries: :account }).to_a
+        .sort_by { |entry| [entry.journal_transaction.date, entry.id] }
+
+      @beginning_balance = from ? all_entries.select { |e| e.journal_transaction.date < from }.sum(&:signed_amount) : 0
+      entries_in_range = all_entries.select { |e| from.nil? || e.journal_transaction.date.between?(from, to) }
+
+      running_balance = @beginning_balance
+      @rows = entries_in_range.map do |entry|
+        running_balance += entry.signed_amount
+        { entry: entry, running_balance: running_balance }
+      end
+      @ending_balance = running_balance
+    else
+      @beginning_balance = @ending_balance = 0
+      @rows = []
+    end
   end
 
   private

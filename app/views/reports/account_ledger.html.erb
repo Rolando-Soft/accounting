@@ -1,0 +1,53 @@
+<% content_for :title, "Account Ledger" %>
+<h1 class="text-2xl font-bold mb-6">Account Ledger</h1>
+
+<%= form_with url: account_ledger_path, method: :get, class: "mb-6 flex flex-wrap items-end gap-6" do |form| %>
+  <div>
+    <%= form.label :account_id, "Account", class: "block text-gray-700 font-bold mb-1" %>
+    <div class="relative inline-block" data-controller="account-combobox">
+      <%= form.collection_select :account_id, @accounts, :id, :label_with_type, { selected: @account&.id }, class: "hidden",
+            onchange: "this.form.requestSubmit()", data: { "account-combobox-target": "select" } %>
+      <input type="text" class="border rounded px-3 py-2 w-56" placeholder="Search account…" autocomplete="off"
+            data-account-combobox-target="input"
+            data-action="input->account-combobox#search focus->account-combobox#open blur->account-combobox#close keydown.enter->account-combobox#selectTopMatch keydown.escape->account-combobox#close" />
+      <ul class="hidden absolute z-10 bg-white border rounded shadow w-56 mt-1 max-h-60 overflow-auto" data-account-combobox-target="list"></ul>
+    </div>
+  </div>
+
+  <div>
+    <%= form.label :view_filter, "View Filter", class: "block text-gray-700 font-bold mb-1" %>
+    <%= form.select :view_filter,
+          [["This month", "this_month"], ["Last month", "last_month"], ["Last 3 months", "last_3_months"],
+           ["This year", "this_year"], ["Last year", "last_year"], ["All dates", "all_dates"]],
+          { selected: @view_filter }, class: "border rounded px-2 py-1", onchange: "this.form.requestSubmit()" %>
+  </div>
+<% end %>
+
+<% if @account %>
+  <table class="table-auto w-full">
+    <thead>
+      <tr>
+        <th class="border border-blue-300 px-3 py-2">Date</th>
+        <th class="border border-blue-300 px-3 py-2">Payee</th>
+        <th class="border border-blue-300 px-3 py-2">Other Account(s)</th>
+        <th class="border border-blue-300 px-3 py-2">Description</th>
+        <th class="border border-blue-300 px-3 py-2">DB</th>
+        <th class="border border-blue-300 px-3 py-2">CR</th>
+        <th class="border border-blue-300 px-3 py-2">Balance</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="font-bold bg-gray-100">
+        <td class="border border-blue-300 px-3 py-2" colspan="6">Beginning Balance</td>
+        <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(@beginning_balance) %></td>
+      </tr>
+      <%= render partial: "reports/ledger_row", collection: @rows, as: :row %>
+      <tr class="font-bold bg-gray-100">
+        <td class="border border-blue-300 px-3 py-2" colspan="6">Ending Balance</td>
+        <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(@ending_balance) %></td>
+      </tr>
+    </tbody>
+  </table>
+<% else %>
+  <p class="text-gray-600">No accounts yet. <%= link_to "Create one", new_account_path %>.</p>
+<% end %>
