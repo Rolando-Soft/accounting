@@ -26,9 +26,49 @@
   </div>
 
   <div class="mb-4">
-    <%= form.label :cash_flow_category, class: "block text-gray-700 font-semibold mb-1" do %>
-      Cash flow category <span class="text-red-600">*</span>
-    <% end %>
+    <div class="flex items-center gap-1 mb-1">
+      <%= form.label :cash_flow_category, class: "block text-gray-700 font-semibold" do %>
+        Cash flow category <span class="text-red-600">*</span>
+      <% end %>
+      <div class="relative group">
+        <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-300 text-gray-700 text-xs font-bold cursor-help">?</span>
+        <div class="hidden group-hover:block absolute z-10 left-0 top-full mt-1 w-80 p-3 bg-gray-800 text-gray-100 text-xs rounded shadow-lg">
+          <p class="mb-2">
+            <span class="font-bold">Operating</span> <span class="italic">(Current Assets &amp; Current Liabilities)</span>
+          </p>
+          <ul class="list-disc list-inside mb-3 space-y-0.5">
+            <li>Accounts Receivable</li>
+            <li>Inventory</li>
+            <li>Prepaid Expenses</li>
+            <li>Accounts Payable</li>
+            <li>Accrued Expenses (Wages, Taxes)</li>
+            <li>Unearned Revenue</li>
+            <li>Depreciation &amp; Amortization <span class="italic">(non-cash)</span></li>
+          </ul>
+          <p class="mb-2">
+            <span class="font-bold">Investing</span> <span class="italic">(Long-Term Assets)</span>
+          </p>
+          <ul class="list-disc list-inside mb-3 space-y-0.5">
+            <li>Property, Plant &amp; Equipment (PP&amp;E)</li>
+            <li>Land &amp; Buildings</li>
+            <li>Intangible Assets (Patents, Trademarks)</li>
+            <li>Marketable Securities / Long-Term Investments</li>
+            <li>Notes Receivable (loans made to others)</li>
+          </ul>
+          <p class="mb-2">
+            <span class="font-bold">Financing</span> <span class="italic">(Long-Term Liabilities &amp; Equity)</span>
+          </p>
+          <ul class="list-disc list-inside space-y-0.5">
+            <li>Notes Payable &amp; Bonds Payable</li>
+            <li>Bank Loans / Lines of Credit</li>
+            <li>Common &amp; Preferred Stock</li>
+            <li>Additional Paid-in Capital</li>
+            <li>Treasury Stock</li>
+            <li>Retained Earnings <span class="italic">(specifically Dividends Paid)</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
     <%= form.select :cash_flow_category, Account.cash_flow_categories.keys.map{ |key| [key.titleize, key] }, { include_blank: "Select a category", selected: account.cash_flow_category }, { class: "w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300", required: true } %>
   </div>
 
