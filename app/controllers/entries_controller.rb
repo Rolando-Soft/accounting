@@ -62,7 +62,7 @@ class EntriesController < ApplicationController
   # visible entries) from a params-like hash, so index and the
   # turbo_stream branch of update share one source of truth.
   def load_register(source_params)
-    @accounts = Account.where(account_type: REGISTER_ACCOUNT_TYPES).order(:account_type, :name)
+    @accounts = Account.where(account_type: REGISTER_ACCOUNT_TYPES).ordered_by_type
     @account = @accounts.find_by(id: source_params[:account_id]) || @accounts.first
 
     @view_filter = VIEW_FILTERS.include?(source_params[:view_filter]) ? source_params[:view_filter] : "this_month"

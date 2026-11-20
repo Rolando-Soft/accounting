@@ -19,6 +19,10 @@ class Account < ApplicationRecord
     "equity" => "Equity"
   }.freeze
 
+  # Grouped by type in TYPE_LABELS' order (Assets, Liabilities, Income,
+  # Expense, Equity), then by name — the order account pickers should use.
+  scope :ordered_by_type, -> { order(:account_type, :name) }
+
   # The entry_type ("debit" or "credit") that increases this account's balance.
   NORMAL_BALANCE = {
     "asset" => "debit",
