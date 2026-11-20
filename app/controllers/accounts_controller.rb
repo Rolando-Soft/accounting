@@ -48,12 +48,16 @@ class AccountsController < ApplicationController
 
   # DELETE /accounts/1 or /accounts/1.json
   def destroy
-
-    @account.destroy!
-
-    respond_to do |format|
-      format.html { redirect_to accounts_path, notice: "Account was successfully destroyed.", status: :see_other }
-      format.json { head :no_content }
+    if @account.destroy
+      respond_to do |format|
+        format.html { redirect_to accounts_path, notice: "Account was successfully destroyed.", status: :see_other }
+        format.json { head :no_content }
+      end
+    else
+      respond_to do |format|
+        format.html { redirect_to accounts_path, alert: @account.errors.full_messages.to_sentence, status: :see_other }
+        format.json { render json: @account.errors, status: :unprocessable_entity }
+      end
     end
   end
 

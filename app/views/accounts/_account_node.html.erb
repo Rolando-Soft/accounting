@@ -1,12 +1,24 @@
-<tr id="<%= dom_id(account) %>" class="border border-gray-300">
+<tr id="<%= dom_id(account) %>" class="border border-gray-300 cursor-pointer hover:bg-gray-50"
+    data-controller="row-link"
+    data-row-link-url-value="<%= edit_account_path(account) %>"
+    data-action="click->row-link#visit">
   <td class="border border-blue-300 px-3 py-2" style="padding-left: <%= 0.75 + depth * 1.5 %>rem;">
     <%= "↳ " if depth > 0 %><%= account.name %>
   </td>
   <td class="border border-blue-300 px-3 py-2"><%= account.description %></td>
   <td class="border border-blue-300 px-3 py-2"><%= account.cash_flow_category&.titleize || "—" %></td>
-  <td class="border border-blue-300 px-3 py-2 text-center whitespace-nowrap">
-    <%= link_to "Edit", edit_account_path(account), class: "text-blue-600 hover:underline mr-2" %>
-    <%= link_to "Delete", account, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, class: "text-red-600 hover:underline" %>
+  <% blocked_reason = if account.entries.exists?
+                        "Cannot delete: account has transactions"
+                      elsif account.children.exists?
+                        "Cannot delete: account has sub-accounts"
+                      end %>
+  <td class="border border-blue-300 px-3 py-2 text-center" data-action="click->row-link#ignore:stop">
+    <% if blocked_reason %>
+      <span class="text-gray-400 font-bold px-2 cursor-not-allowed" title="<%= blocked_reason %>">x</span>
+    <% else %>
+      <%= button_to "x", account, method: :delete, form: { data: { turbo_confirm: "Are you sure?" } },
+            class: "text-red-600 hover:text-red-800 font-bold px-2 bg-transparent border-0 cursor-pointer" %>
+    <% end %>
   </td>
 </tr>
 <% account.children.order(:name).each do |child| %>
