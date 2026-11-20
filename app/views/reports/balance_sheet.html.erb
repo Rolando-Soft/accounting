@@ -1,49 +1,69 @@
 <% content_for :title, "Balance Sheet" %>
 <h1 class="text-2xl font-bold mb-6">Balance Sheet</h1>
 
-<%= form_with url: balance_sheet_path, method: :get, class: "mb-6 flex items-center gap-2" do |form| %>
-  <%= form.label :as_of, "As of", class: "font-bold" %>
-  <%= form.date_field :as_of, value: @as_of, class: "border rounded px-3 py-2", onchange: "this.form.requestSubmit()" %>
+<%= form_with url: balance_sheet_path, method: :get, class: "mb-6 flex items-center gap-4" do |form| %>
+  <div class="flex items-center gap-2">
+    <%= form.label :as_of, "As of", class: "font-bold" %>
+    <%= form.date_field :as_of, value: @as_of, class: "border rounded px-3 py-2", onchange: "this.form.requestSubmit()" %>
+  </div>
+  <div class="flex items-center gap-2">
+    <%= form.label :periods, "Compare", class: "font-bold" %>
+    <%= form.select :periods,
+          [["Single month", 1], ["Last 2 months", 2], ["Last 3 months", 3]],
+          { selected: @periods }, class: "border rounded px-2 py-1", onchange: "this.form.requestSubmit()" %>
+  </div>
 <% end %>
 
 <table class="table-auto w-full mb-6">
   <thead>
     <tr>
       <th class="border border-blue-300 px-3 py-2 text-left">Account</th>
-      <th class="border border-blue-300 px-3 py-2 text-right">Balance</th>
+      <% @columns.each do |column| %>
+        <th class="border border-blue-300 px-3 py-2 text-right"><%= column[:as_of].strftime("%b %-d, %Y") %></th>
+      <% end %>
     </tr>
   </thead>
-  <% [["asset", "Assets", @total_assets], ["liability", "Liabilities", @total_liabilities], ["equity", "Equity", @total_equity]].each do |type, label, total| %>
+  <% [["asset", "Assets", :total_assets], ["liability", "Liabilities", :total_liabilities], ["equity", "Equity", :total_equity]].each do |type, label, total_key| %>
     <tbody>
       <tr class="bg-gray-100">
-        <th colspan="2" class="border border-blue-300 px-3 py-2 text-left"><%= label %></th>
+        <th colspan="<%= @columns.size + 1 %>" class="border border-blue-300 px-3 py-2 text-left"><%= label %></th>
       </tr>
-      <% @accounts_by_type[type].each do |account, balance| %>
+      <% @columns.first[:accounts_by_type][type].each_with_index do |(account, _balance), index| %>
         <tr>
           <td class="border border-blue-300 px-3 py-2"><%= account.name %></td>
-          <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(balance) %></td>
+          <% @columns.each do |column| %>
+            <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(column[:accounts_by_type][type][index][1]) %></td>
+          <% end %>
         </tr>
       <% end %>
       <% if type == "equity" %>
         <tr>
           <td class="border border-blue-300 px-3 py-2">Current Earnings <span class="text-gray-500 text-sm">(net income to date)</span></td>
-          <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(@current_earnings) %></td>
+          <% @columns.each do |column| %>
+            <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(column[:current_earnings]) %></td>
+          <% end %>
         </tr>
       <% end %>
       <tr class="font-bold">
         <td class="border border-blue-300 px-3 py-2">Total <%= label %></td>
-        <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(total) %></td>
+        <% @columns.each do |column| %>
+          <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(column[total_key]) %></td>
+        <% end %>
       </tr>
     </tbody>
   <% end %>
 </table>
 
-<% difference = (@total_assets - (@total_liabilities + @total_equity)).round(2) %>
-<div class="font-bold">
-  Liabilities + Equity: <%= number_to_currency(@total_liabilities + @total_equity) %>
-  <% if difference.zero? %>
-    <span class="text-green-600 ml-4">Balanced</span>
-  <% else %>
-    <span class="text-red-600 ml-4">Out of balance by <%= number_to_currency(difference) %></span>
+<div class="space-y-1">
+  <% @columns.each do |column| %>
+    <% difference = (column[:total_assets] - (column[:total_liabilities] + column[:total_equity])).round(2) %>
+    <div class="font-bold">
+      <%= column[:as_of].strftime("%b %-d, %Y") %> — Liabilities + Equity: <%= number_to_currency(column[:total_liabilities] + column[:total_equity]) %>
+      <% if difference.zero? %>
+        <span class="text-green-600 ml-4">Balanced</span>
+      <% else %>
+        <span class="text-red-600 ml-4">Out of balance by <%= number_to_currency(difference) %></span>
+      <% end %>
+    </div>
   <% end %>
 </div>
