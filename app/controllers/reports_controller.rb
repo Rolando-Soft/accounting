@@ -196,7 +196,7 @@ class ReportsController < ApplicationController
   # debit/credit and normal balance disagree, e.g. paying down a
   # liability).
   def non_cash_category_balances(upto:, from:)
-    accounts = Account.where.not(account_type: "asset").includes(entries: :journal_transaction)
+    accounts = Account.where.not(account_type: "asset").postable.includes(entries: :journal_transaction)
     grouped = accounts.group_by { |account| account.cash_flow_category || "uncategorized" }
 
     %w[operating investing financing uncategorized].index_with do |category|
