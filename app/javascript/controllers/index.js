@@ -15,3 +15,6 @@ application.register("difference", DifferenceController)
 
 import JournalFormController from "./journal_form_controller"
 application.register("journal-form", JournalFormController)
+
+import PayeeAutocompleteController from "./payee_autocomplete_controller"
+application.register("payee-autocomplete", PayeeAutocompleteController)

@@ -32,9 +32,11 @@
     <%= form.date_field :date, class: "border rounded px-3 py-2 w-full" %>
   </div>
 
-  <div class="mb-4">
+  <div class="mb-4 relative" data-controller="payee-autocomplete" data-payee-autocomplete-url-value="<%= payee_suggestions_journal_transactions_path %>">
     <%= form.label :payee, class: "block text-gray-700 font-bold mb-2" %>
-    <%= form.text_field :payee, class: "border rounded px-3 py-2 w-full" %>
+    <%= form.text_field :payee, class: "border rounded px-3 py-2 w-full", autocomplete: "off",
+          data: { "payee-autocomplete-target": "input", action: "input->payee-autocomplete#search" } %>
+    <ul class="hidden absolute z-10 bg-white border rounded shadow w-full mt-1" data-payee-autocomplete-target="list"></ul>
   </div>
 
   <div class="mb-4">

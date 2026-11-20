@@ -1,6 +1,8 @@
 class JournalTransactionsController < ApplicationController
   def index
-    @journal_transactions = JournalTransaction.search_by_payee(params[:q])
+    @return_to = request.fullpath
+    @journal_transactions = JournalTransaction.includes(entries: :account).search_by_payee(params[:q])
+      .sort_by { |jt| [jt.date, jt.id] }.reverse
   end
 
   def new
@@ -20,7 +22,7 @@ class JournalTransactionsController < ApplicationController
     @return_to = params[:return_to].presence
     @journal_transaction = JournalTransaction.new(journal_transaction_params)
     if @journal_transaction.save
-      redirect_to journal_transactions_path, notice: 'Journal transaction was successfully created.'
+      redirect_to @return_to.presence || journal_transactions_path, notice: 'Journal transaction was successfully created.'
     else
       render :new
     end
@@ -41,7 +43,7 @@ class JournalTransactionsController < ApplicationController
     @register_account_id = params[:register_account_id].presence&.to_i
     @return_to = params[:return_to].presence
     if @journal_transaction.update(journal_transaction_params)
-      redirect_to journal_transactions_path, notice: 'Journal transaction was successfully updated.'
+      redirect_to @return_to.presence || journal_transactions_path, notice: 'Journal transaction was successfully updated.'
     else
       render :edit
     end
@@ -51,6 +53,12 @@ class JournalTransactionsController < ApplicationController
     @journal_transaction = JournalTransaction.find(params[:id])
     @journal_transaction.destroy
     redirect_to params[:return_to].presence || journal_transactions_path, notice: "Journal transaction deleted."
+  end
+
+  # Fuzzy-matched payee suggestions for the transaction form's autocomplete.
+  def payee_suggestions
+    payees = params[:q].present? ? JournalTransaction.search_by_payee(params[:q]).filter_map(&:payee).uniq.first(8) : []
+    render json: payees
   end
 
   private

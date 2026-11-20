@@ -4,7 +4,11 @@ Rails.application.routes.draw do
       post :reconcile
     end
   end
-  resources :journal_transactions
+  resources :journal_transactions do
+    collection do
+      get :payee_suggestions
+    end
+  end
   resources :accounts, except: :show
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

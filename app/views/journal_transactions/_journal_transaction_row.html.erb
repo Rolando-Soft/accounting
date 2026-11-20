@@ -1,0 +1,16 @@
+<tr class="border border-gray-300 text-center cursor-pointer hover:bg-gray-50"
+    data-controller="row-link"
+    data-row-link-url-value="<%= edit_journal_transaction_path(transaction, return_to: @return_to) %>"
+    data-action="click->row-link#visit">
+  <td class="border border-blue-300 px-3 py-2"><%= transaction.date %></td>
+  <td class="border border-blue-300 px-3 py-2"><%= transaction.payee %></td>
+  <td class="border border-blue-300 px-3 py-2"><%= transaction.description %></td>
+  <td class="border border-blue-300 px-3 py-2 text-left">
+    <% transaction.entries.each do |entry| %>
+      <div>
+        <%= entry.account.name %>
+        <span class="text-gray-500">(<%= entry.entry_type == "debit" ? "DB" : "CR" %> <%= number_to_currency(entry.amount) %>)</span>
+      </div>
+    <% end %>
+  </td>
+</tr>
