@@ -25,6 +25,11 @@ class Account < ApplicationRecord
   # Expense, Equity), then by name — the order account pickers should use.
   scope :ordered_by_type, -> { order(:account_type, :name) }
 
+  # Leaf accounts only — a parent account can't itself hold entries (see
+  # Entry#account_must_not_have_children), so transaction forms should only
+  # offer accounts that are actually postable.
+  scope :postable, -> { where.not(id: Account.where.not(parent_id: nil).select(:parent_id)) }
+
   # The entry_type ("debit" or "credit") that increases this account's balance.
   NORMAL_BALANCE = {
     "asset" => "debit",

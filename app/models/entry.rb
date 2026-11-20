@@ -6,6 +6,16 @@ class Entry < ApplicationRecord
   enum :reconciliation_status, { unreconciled: 0, cleared: 1, reconciled: 2 }
 
   validates :amount, numericality: { greater_than: 0 }
+  validate :account_must_not_have_children
+
+  # Parent accounts exist to group their children for reporting; letting a
+  # parent also hold its own entries makes its balance mean two different
+  # things depending on whether its children are shown collapsed (rollup)
+  # or expanded (own-only) — see the Income Statement/Balance Sheet
+  # "Show child accounts" toggle. Only leaf accounts are postable.
+  def account_must_not_have_children
+    errors.add(:account, "has sub-accounts; post to one of its child accounts instead") if account&.children&.exists?
+  end
 
   # The transaction form shows one DB column and one CR column per entry
   # instead of an entry-type dropdown; whichever side the user fills in
