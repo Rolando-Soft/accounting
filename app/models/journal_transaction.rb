@@ -1,4 +1,6 @@
 class JournalTransaction < ApplicationRecord
+  include WorkspaceScoped
+
   has_many :entries, dependent: :destroy
   accepts_nested_attributes_for :entries, allow_destroy: true, reject_if: :all_blank
 
@@ -9,6 +11,7 @@ class JournalTransaction < ApplicationRecord
   validate :balanced_entries
   validate :minimum_two_entries
   validate :protect_reconciled_entries
+  validate :entries_must_share_workspace
 
   # Fuzzy-matches `term` against `payee`: a plain substring match always
   # counts, and a short Levenshtein distance catches typos (e.g. "Amazn").
@@ -55,6 +58,19 @@ class JournalTransaction < ApplicationRecord
   def minimum_two_entries
     if entries.reject(&:marked_for_destruction?).size < 2
       errors.add(:base, "Transaction must have at least two entries")
+    end
+  end
+
+  def entries_must_share_workspace
+    return unless workspace_id.present?
+
+    entries.reject(&:marked_for_destruction?).each do |entry|
+      next unless entry.account_id.present?
+
+      account = Account.unscoped.find_by(id: entry.account_id)
+      next unless account && account.workspace_id != workspace_id
+
+      errors.add(:base, "#{account.name} does not belong to this transaction's workspace")
     end
   end
 

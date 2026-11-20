@@ -10,6 +10,12 @@ Rails.application.routes.draw do
     end
   end
   resources :accounts, except: :show
+  resources :workspaces, except: :show do
+    member do
+      post :switch
+      get :delete_confirm
+    end
+  end
 
   get "reports", to: "reports#index", as: :reports
   get "reports/balance_sheet", to: "reports#balance_sheet", as: :balance_sheet

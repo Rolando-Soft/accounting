@@ -1,4 +1,6 @@
 class Account < ApplicationRecord
+  include WorkspaceScoped
+
   before_destroy :ensure_no_journal_transactions
   before_destroy :ensure_no_children
 
@@ -40,12 +42,13 @@ class Account < ApplicationRecord
     "#{name} (#{TYPE_LABELS[account_type]})"
   end
 
-  validates :name, presence: true, uniqueness: true
+  validates :name, presence: true, uniqueness: { scope: :workspace_id }
   validates :account_type, presence: true
   validates :cash_flow_category, presence: true
   validates :description, length: { maximum: 500 }
   validate :parent_cannot_be_self
   validate :parent_must_have_same_account_type
+  validate :parent_must_have_same_workspace
   validate :parent_cannot_create_cycle
 
   private
@@ -70,6 +73,12 @@ class Account < ApplicationRecord
   def parent_must_have_same_account_type
     if parent && account_type.present? && parent.account_type != account_type
       errors.add(:account_type, "must match the parent account's type (#{parent.account_type})")
+    end
+  end
+
+  def parent_must_have_same_workspace
+    if parent && workspace_id.present? && parent.workspace_id != workspace_id
+      errors.add(:parent, "must belong to the same workspace")
     end
   end
 

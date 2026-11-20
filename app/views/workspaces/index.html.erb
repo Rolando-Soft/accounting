@@ -1,0 +1,43 @@
+<% content_for :title, "Workspaces" %>
+<h1 class="text-2xl font-bold mb-6">Workspaces</h1>
+
+<% if notice.present? %>
+  <p class="text-green-600 mb-4"><%= notice %></p>
+<% end %>
+<% if alert.present? %>
+  <p class="text-red-600 mb-4"><%= alert %></p>
+<% end %>
+
+<%= link_to "New workspace", new_workspace_path, class: "bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 inline-block mb-4" %>
+
+<table class="table-auto w-full">
+  <thead>
+    <tr>
+      <th class="border border-blue-300 px-3 py-2 text-left">Name</th>
+      <th class="border border-blue-300 px-3 py-2 text-right">Accounts</th>
+      <th class="border border-blue-300 px-3 py-2 text-right">Transactions</th>
+      <th class="border border-blue-300 px-3 py-2"></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @workspaces.each do |workspace| %>
+      <tr class="border border-gray-300">
+        <td class="border border-blue-300 px-3 py-2">
+          <%= workspace.name %>
+          <% if workspace == Current.workspace %>
+            <span class="text-xs text-gray-500">(active)</span>
+          <% end %>
+        </td>
+        <td class="border border-blue-300 px-3 py-2 text-right"><%= workspace.accounts_count %></td>
+        <td class="border border-blue-300 px-3 py-2 text-right"><%= workspace.journal_transactions_count %></td>
+        <td class="border border-blue-300 px-3 py-2 text-center space-x-3">
+          <% unless workspace == Current.workspace %>
+            <%= button_to "Switch to", switch_workspace_path(workspace), class: "text-blue-600 hover:underline bg-transparent border-0 p-0 cursor-pointer" %>
+          <% end %>
+          <%= link_to "Edit", edit_workspace_path(workspace), class: "text-blue-600 hover:underline" %>
+          <%= link_to "Delete", delete_confirm_workspace_path(workspace), class: "text-red-600 hover:underline" %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

@@ -8,6 +8,8 @@
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
 
+Current.workspace = Workspace.find_or_create_by!(name: "Personal")
+
 cash = Account.create!(name: "Cash", account_type: :asset, description: "Cash account")
 groceries = Account.create!(name: "Groceries", account_type: :expense, description: "Grocery expenses")
 salary = Account.create!(name: "Salary", account_type: :income, description: "Salary income")

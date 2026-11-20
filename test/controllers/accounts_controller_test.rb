@@ -3,6 +3,7 @@ require "test_helper"
 class AccountsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @account = accounts(:one)
+    post switch_workspace_path(@account.workspace)
   end
 
   test "should get index" do
@@ -17,7 +18,7 @@ class AccountsControllerTest < ActionDispatch::IntegrationTest
 
   test "should create account" do
     assert_difference("Account.count") do
-      post accounts_url, params: { account: { account_type: @account.account_type, description: @account.description, name: "Revenue" } }
+      post accounts_url, params: { account: { account_type: @account.account_type, description: @account.description, cash_flow_category: "operating", name: "Revenue" } }
     end
 
     assert_redirected_to accounts_url

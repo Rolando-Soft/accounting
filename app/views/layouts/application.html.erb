@@ -23,11 +23,26 @@
   </head>
 
   <body>
-    <nav class="bg-gray-800 px-6 py-3 flex gap-6">
+    <nav class="bg-gray-800 px-6 py-3 flex gap-6 items-center">
       <%= link_to "Entries", entries_path, class: "text-white font-semibold hover:text-blue-300" %>
       <%= link_to "Accounts", accounts_path, class: "text-white font-semibold hover:text-blue-300" %>
       <%= link_to "Journal Transactions", journal_transactions_path, class: "text-white font-semibold hover:text-blue-300" %>
       <%= link_to "Reports", reports_path, class: "text-white font-semibold hover:text-blue-300" %>
+      <%= link_to "Workspaces", workspaces_path, class: "text-white font-semibold hover:text-blue-300" %>
+
+      <% if Current.workspace %>
+        <div class="relative group ml-auto">
+          <button type="button" class="text-white font-semibold bg-gray-700 px-3 py-1 rounded hover:bg-gray-600">
+            <%= Current.workspace.name %> ▾
+          </button>
+          <div class="hidden group-hover:block absolute right-0 z-10 bg-white border rounded shadow w-48 mt-1">
+            <% Workspace.order(:name).each do |workspace| %>
+              <%= button_to workspace.name, switch_workspace_path(workspace), method: :post,
+                    class: "w-full text-left px-3 py-2 hover:bg-gray-100 bg-transparent border-0 cursor-pointer text-gray-800 #{"font-bold" if workspace == Current.workspace}" %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
     </nav>
 
     <div class="max-w-5xl mx-auto px-6 mt-4">

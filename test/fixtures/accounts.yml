@@ -4,10 +4,14 @@ one:
   name: Cash
   account_type: 0
   description: MyString
+  cash_flow_category: 0
+  workspace: one
 
 
 two:
   name: Accounts Payable
   account_type: 1
   description: MyString
+  cash_flow_category: 0
+  workspace: one
 

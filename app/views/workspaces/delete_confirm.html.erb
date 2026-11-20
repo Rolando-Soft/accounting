@@ -1,0 +1,29 @@
+<% content_for :title, "Delete Workspace" %>
+<h1 class="text-2xl font-bold mb-6">Delete Workspace</h1>
+
+<div class="max-w-lg mx-auto bg-white p-8 rounded shadow">
+  <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+    <p class="font-bold mb-2">This will permanently delete "<%= @workspace.name %>" and everything in it:</p>
+    <ul class="list-disc list-inside">
+      <li><%= pluralize(@workspace.accounts_count, "account") %></li>
+      <li><%= pluralize(@workspace.journal_transactions_count, "journal transaction") %></li>
+    </ul>
+    <p class="mt-2">This cannot be undone.</p>
+  </div>
+
+  <%= form_with url: workspace_path(@workspace), method: :delete, data: { controller: "type-to-confirm", "type-to-confirm-match-value": @workspace.name } do |form| %>
+    <div class="mb-4">
+      <%= label_tag :confirmation_name, "Type \"#{@workspace.name}\" to confirm", class: "block text-gray-700 font-semibold mb-1" %>
+      <%= text_field_tag :confirmation_name, "", autocomplete: "off",
+            class: "w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-red-300",
+            data: { "type-to-confirm-target": "input", action: "input->type-to-confirm#check" } %>
+    </div>
+
+    <div class="flex items-center gap-4">
+      <%= form.submit "Delete workspace and all its data", disabled: true,
+            class: "bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed",
+            data: { "type-to-confirm-target": "submit" } %>
+      <%= link_to "Cancel", workspaces_path, class: "text-blue-600 hover:underline" %>
+    </div>
+  <% end %>
+</div>

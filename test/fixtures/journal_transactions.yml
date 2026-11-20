@@ -3,7 +3,9 @@
 one:
   date: 2025-08-23
   description: MyString
+  workspace: one
 
 two:
   date: 2025-08-23
   description: MyString
+  workspace: one

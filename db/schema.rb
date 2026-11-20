@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_11_19_193500) do
+ActiveRecord::Schema[8.0].define(version: 2026_11_20_120000) do
   create_table "accounts", force: :cascade do |t|
     t.string "name"
     t.integer "account_type"
@@ -19,7 +19,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_11_19_193500) do
     t.datetime "updated_at", null: false
     t.integer "cash_flow_category"
     t.integer "parent_id"
+    t.integer "workspace_id", null: false
     t.index ["parent_id"], name: "index_accounts_on_parent_id"
+    t.index ["workspace_id"], name: "index_accounts_on_workspace_id"
   end
 
   create_table "entries", force: :cascade do |t|
@@ -44,10 +46,21 @@ ActiveRecord::Schema[8.0].define(version: 2026_11_19_193500) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "payee"
+    t.integer "workspace_id", null: false
     t.index ["payee"], name: "index_journal_transactions_on_payee"
+    t.index ["workspace_id"], name: "index_journal_transactions_on_workspace_id"
+  end
+
+  create_table "workspaces", force: :cascade do |t|
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_workspaces_on_name", unique: true
   end
 
   add_foreign_key "accounts", "accounts", column: "parent_id"
+  add_foreign_key "accounts", "workspaces"
   add_foreign_key "entries", "accounts", on_delete: :restrict
   add_foreign_key "entries", "journal_transactions", on_delete: :restrict
+  add_foreign_key "journal_transactions", "workspaces"
 end

@@ -2,7 +2,7 @@ require "test_helper"
 
 class JournalTransactionTest < ActiveSupport::TestCase
   def setup
-    @account = Account.create!(name: "Savings", account_type: :asset)
+    @account = Account.create!(name: "Savings", account_type: :asset, cash_flow_category: :operating)
   end
 
   test "is valid with balanced entries" do
