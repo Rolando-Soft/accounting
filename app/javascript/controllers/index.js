@@ -18,3 +18,6 @@ application.register("journal-form", JournalFormController)
 
 import PayeeAutocompleteController from "./payee_autocomplete_controller"
 application.register("payee-autocomplete", PayeeAutocompleteController)
+
+import AccountComboboxController from "./account_combobox_controller"
+application.register("account-combobox", AccountComboboxController)
