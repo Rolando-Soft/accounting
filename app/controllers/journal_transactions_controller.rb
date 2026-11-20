@@ -24,7 +24,7 @@ class JournalTransactionsController < ApplicationController
     if @journal_transaction.save
       redirect_to @return_to.presence || journal_transactions_path, notice: 'Journal transaction was successfully created.'
     else
-      render :new
+      render :new, status: :unprocessable_entity
     end
   end
 
@@ -45,7 +45,7 @@ class JournalTransactionsController < ApplicationController
     if @journal_transaction.update(journal_transaction_params)
       redirect_to @return_to.presence || journal_transactions_path, notice: 'Journal transaction was successfully updated.'
     else
-      render :edit
+      render :edit, status: :unprocessable_entity
     end
   end
 
