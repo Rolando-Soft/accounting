@@ -2,42 +2,62 @@
 <h1 class="text-2xl font-bold mb-6">Income Statement</h1>
 
 <%= form_with url: income_statement_path, method: :get, class: "mb-6 flex items-center gap-4" do |form| %>
-  <div>
-    <%= form.label :start_date, "From", class: "font-bold mr-2" %>
-    <%= form.date_field :start_date, value: @start_date, class: "border rounded px-3 py-2", onchange: "this.form.requestSubmit()" %>
-  </div>
-  <div>
-    <%= form.label :end_date, "To", class: "font-bold mr-2" %>
+  <div class="flex items-center gap-2">
+    <%= form.label :end_date, "Through", class: "font-bold" %>
     <%= form.date_field :end_date, value: @end_date, class: "border rounded px-3 py-2", onchange: "this.form.requestSubmit()" %>
   </div>
+  <div class="flex items-center gap-2">
+    <%= form.label :periods, "Compare", class: "font-bold" %>
+    <%= form.select :periods,
+          [["Single month", 1], ["Last 2 months", 2], ["Last 3 months", 3]],
+          { selected: @periods }, class: "border rounded px-2 py-1", onchange: "this.form.requestSubmit()" %>
+  </div>
+  <label class="flex items-center gap-2 font-bold">
+    <%= form.check_box :show_children, { checked: @show_children, onchange: "this.form.requestSubmit()" }, "1", "0" %>
+    Show child accounts
+  </label>
 <% end %>
 
 <table class="table-auto w-full mb-6">
   <thead>
     <tr>
       <th class="border border-blue-300 px-3 py-2 text-left">Account</th>
-      <th class="border border-blue-300 px-3 py-2 text-right">Balance</th>
+      <% @columns.each do |column| %>
+        <th class="border border-blue-300 px-3 py-2 text-right"><%= column[:to].strftime("%b %Y") %></th>
+      <% end %>
     </tr>
   </thead>
-  <% [["income", "Income", @total_income], ["expense", "Expense", @total_expense]].each do |type, label, total| %>
+  <% [["income", "Income", :total_income], ["expense", "Expense", :total_expense]].each do |type, label, total_key| %>
     <tbody>
       <tr class="bg-gray-100">
-        <th colspan="2" class="border border-blue-300 px-3 py-2 text-left"><%= label %></th>
+        <th colspan="<%= @columns.size + 1 %>" class="border border-blue-300 px-3 py-2 text-left"><%= label %></th>
       </tr>
-      <% @accounts_by_type[type].each do |account, balance| %>
+      <% @trees[type].each do |row| %>
+        <% next if row[:depth].positive? && !@show_children %>
+        <% account = row[:account] %>
         <tr>
-          <td class="border border-blue-300 px-3 py-2"><%= account.name %></td>
-          <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(balance) %></td>
+          <td class="border border-blue-300 px-3 py-2" style="padding-left: <%= 0.75 + row[:depth] * 1.5 %>rem"><%= account.name %></td>
+          <% @columns.each do |column| %>
+            <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(column[:rollups][type][account.id]) %></td>
+          <% end %>
         </tr>
       <% end %>
       <tr class="font-bold">
         <td class="border border-blue-300 px-3 py-2">Total <%= label %></td>
-        <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(total) %></td>
+        <% @columns.each do |column| %>
+          <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(column[total_key]) %></td>
+        <% end %>
       </tr>
     </tbody>
   <% end %>
+  <tbody>
+    <tr class="font-bold border-t-4 border-gray-400">
+      <td class="border border-blue-300 px-3 py-2">Net Income</td>
+      <% @columns.each do |column| %>
+        <td class="border border-blue-300 px-3 py-2 text-right <%= column[:net_income].negative? ? "text-red-600" : "text-green-600" %>">
+          <%= number_to_currency(column[:net_income]) %>
+        </td>
+      <% end %>
+    </tr>
+  </tbody>
 </table>
-
-<div class="font-bold">
-  Net Income: <span class="<%= @net_income.negative? ? "text-red-600" : "text-green-600" %>"><%= number_to_currency(@net_income) %></span>
-</div>
