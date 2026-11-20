@@ -10,6 +10,7 @@ class ReportsController < ApplicationController
     @as_of = parse_date(params[:as_of]) || Date.current
     @periods = (params[:periods].presence || "1").to_i.clamp(1, 3)
     @show_children = params[:show_children] != "0"
+    @hide_zero_balances = params[:hide_zero_balances] == "1"
     @dates = period_end_dates(@as_of, @periods)
     @trees = account_trees(%w[asset liability equity])
     @columns = @dates.map { |date| balance_sheet_column(date) }
@@ -24,6 +25,7 @@ class ReportsController < ApplicationController
     @end_date = parse_date(params[:end_date]) || Date.current
     @periods = (params[:periods].presence || "1").to_i.clamp(1, 3)
     @show_children = params[:show_children] != "0"
+    @hide_zero_balances = params[:hide_zero_balances] == "1"
     @ranges = period_ranges(@end_date, @periods)
     @trees = account_trees(%w[income expense])
     @columns = @ranges.map { |from, to| income_statement_column(from, to) }
@@ -39,6 +41,7 @@ class ReportsController < ApplicationController
   def cash_flow_statement
     @end_date = parse_date(params[:end_date]) || Date.current
     @periods = (params[:periods].presence || "1").to_i.clamp(1, 3)
+    @hide_zero_balances = params[:hide_zero_balances] == "1"
     @ranges = period_ranges(@end_date, @periods)
     @columns = @ranges.map { |from, to| cash_flow_column(from, to) }
   end

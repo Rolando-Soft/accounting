@@ -12,6 +12,10 @@
           [["Single month", 1], ["Last 2 months", 2], ["Last 3 months", 3]],
           { selected: @periods }, class: "border rounded px-2 py-1", onchange: "this.form.requestSubmit()" %>
   </div>
+  <label class="flex items-center gap-2 font-bold">
+    <%= form.check_box :hide_zero_balances, { checked: @hide_zero_balances, onchange: "this.form.requestSubmit()" }, "1", "0" %>
+    Hide zero-balance accounts
+  </label>
 <% end %>
 
 <table class="table-auto w-full mb-6">
@@ -30,6 +34,7 @@
         <th colspan="<%= @columns.size + 1 %>" class="border border-blue-300 px-3 py-2 text-left"><%= label %></th>
       </tr>
       <% @columns.first[:category_rows][category].each_with_index do |(account, _effect), index| %>
+        <% next if @hide_zero_balances && @columns.all? { |column| column[:category_rows][category][index][1].zero? } %>
         <tr>
           <td class="border border-blue-300 px-3 py-2"><%= account.name %></td>
           <% @columns.each do |column| %>
