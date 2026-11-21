@@ -3,6 +3,13 @@ require "application_system_test_case"
 class AccountsTest < ApplicationSystemTestCase
   setup do
     @account = accounts(:one)
+
+    # Which workspace ends up current by default (ApplicationController
+    # falls back to Workspace.order(:id).first) isn't guaranteed to match
+    # the fixture account's workspace, since fixture ids aren't sequential.
+    # Removing every other workspace makes the fixture's workspace the only
+    # — and therefore the default — one.
+    Workspace.where.not(id: @account.workspace_id).destroy_all
   end
 
   test "visiting the index" do
@@ -12,35 +19,33 @@ class AccountsTest < ApplicationSystemTestCase
 
   test "should create account" do
     visit accounts_url
-    click_on "New account"
+    click_on "New account", match: :first
 
-    fill_in "Account type", with: @account.account_type
-    fill_in "Category", with: @account.category_id
-    fill_in "Description", with: @account.description
-    fill_in "Name", with: @account.name
+    fill_in "Name", with: "New Test Account"
+    select "Asset", from: "Account type"
+    fill_in "Description", with: "A new test account"
+    select "Operating", from: "Cash flow category"
     click_on "Create Account"
 
     assert_text "Account was successfully created"
-    click_on "Back"
   end
 
   test "should update Account" do
-    visit account_url(@account)
-    click_on "Edit this account", match: :first
+    visit accounts_url
+    find("tr##{dom_id(@account)}").click
 
-    fill_in "Account type", with: @account.account_type
-    fill_in "Category", with: @account.category_id
-    fill_in "Description", with: @account.description
-    fill_in "Name", with: @account.name
+    fill_in "Description", with: "An updated description"
     click_on "Update Account"
 
     assert_text "Account was successfully updated"
-    click_on "Back"
   end
 
   test "should destroy Account" do
-    visit account_url(@account)
-    click_on "Destroy this account", match: :first
+    visit accounts_url
+
+    accept_confirm do
+      within("tr##{dom_id(@account)}") { click_on "x" }
+    end
 
     assert_text "Account was successfully destroyed"
   end
