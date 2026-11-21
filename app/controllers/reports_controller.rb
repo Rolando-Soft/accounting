@@ -210,7 +210,7 @@ class ReportsController < ApplicationController
         end.sum { |entry| entry.debit? ? entry.amount : -entry.amount }
 
         [account, -raw_delta]
-      end.sort_by { |account, _effect| account.name }
+      end.sort_by { |account, _effect| [Account.account_types[account.account_type], account.name] }
     end
   end
 end
