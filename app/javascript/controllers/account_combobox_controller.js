@@ -9,8 +9,9 @@ export default class extends Controller {
   static targets = ["select", "input", "list"]
 
   connect() {
+    // The blank option (e.g. "All accounts", "None (top-level)") stays in
+    // the list so there's a way back to it once something else is picked.
     this.options = Array.from(this.selectTarget.options)
-      .filter((option) => option.value !== "")
       .map((option) => ({ value: option.value, label: option.text }))
 
     this.syncInputFromSelect()
