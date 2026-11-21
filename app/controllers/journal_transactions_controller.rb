@@ -1,7 +1,11 @@
 class JournalTransactionsController < ApplicationController
+  include DateRangeFilterable
+
   def index
     @return_to = request.fullpath
+    @view_filter = normalize_view_filter(params[:view_filter])
     @journal_transactions = JournalTransaction.includes(entries: :account).search_by_payee(params[:q])
+      .select { |jt| within_date_range?(jt.date, @view_filter) }
       .sort_by { |jt| [jt.date, jt.id] }.reverse
   end
 

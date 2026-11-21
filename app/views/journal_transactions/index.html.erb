@@ -9,6 +9,14 @@
   <% if params[:q].present? %>
     <%= link_to "Clear", journal_transactions_path, class: "text-blue-600 hover:underline" %>
   <% end %>
+
+  <div>
+    <%= form.label :view_filter, "View Filter", class: "font-bold mr-2" %>
+    <%= form.select :view_filter,
+          [["This month", "this_month"], ["Last month", "last_month"], ["Last 3 months", "last_3_months"],
+           ["This year", "this_year"], ["Last year", "last_year"], ["All dates", "all_dates"]],
+          { selected: @view_filter }, class: "border rounded px-2 py-1", onchange: "this.form.requestSubmit()" %>
+  </div>
 <% end %>
 
 <table class="table-auto w-full">
