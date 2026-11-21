@@ -80,7 +80,7 @@ class ReportsController < ApplicationController
   # total activity within the view filter's date range — a shape for
   # spotting where the money is concentrated that a table doesn't give you.
   def income_expense_treemap
-    @account_type = %w[income expense].include?(params[:account_type]) ? params[:account_type] : "income"
+    @account_type = %w[income expense].include?(params[:account_type]) ? params[:account_type] : "expense"
     @view_filter = normalize_view_filter(params[:view_filter])
     from, to = view_filter_range(@view_filter)
 
@@ -94,7 +94,50 @@ class ReportsController < ApplicationController
     end.sort_by { |tile| -tile[:value] }
   end
 
+  PERIODS = %w[yearly quarterly monthly weekly daily].freeze
+
+  # One bar per period (year/quarter/month/week/day) of a single income or
+  # expense account type's total activity — a trend view of the treemap's
+  # totals, instead of a snapshot of where they're concentrated.
+  def income_expense_comparison
+    @account_type = %w[income expense].include?(params[:account_type]) ? params[:account_type] : "expense"
+    @view_filter = normalize_view_filter(params[:view_filter])
+    @period = PERIODS.include?(params[:period]) ? params[:period] : "monthly"
+    from, to = view_filter_range(@view_filter)
+
+    @accounts = Account.where(account_type: @account_type).postable.ordered_by_type
+    @account = @accounts.find_by(id: params[:account_id])
+
+    scoped_accounts = @account ? [@account] : @accounts.includes(entries: :journal_transaction)
+    entries = scoped_accounts.flat_map(&:entries).select do |entry|
+      date = entry.journal_transaction.date
+      date && (from.nil? || date.between?(from, to))
+    end
+
+    @bars = entries.group_by { |entry| period_bucket(entry.journal_transaction.date, @period) }
+      .sort_by { |(sort_key, _label), _group| sort_key }
+      .map { |(_sort_key, label), group| { label: label, value: group.sum(&:signed_amount) } }
+  end
+
   private
+
+  # [sort_key, label] for the period a date falls in, grouped so entries in
+  # the same period collapse into the same bar and bars stay chronological.
+  def period_bucket(date, period)
+    case period
+    when "yearly" then [date.year, date.year.to_s]
+    when "quarterly"
+      quarter = (date.month - 1) / 3 + 1
+      [[date.year, quarter], "Q#{quarter} #{date.year}"]
+    when "weekly"
+      start = date.beginning_of_week
+      [start, start.strftime("%b %-d, %Y")]
+    when "daily"
+      [date, date.strftime("%b %-d, %Y")]
+    else
+      [[date.year, date.month], date.strftime("%b %Y")]
+    end
+  end
 
   def parse_date(value)
     Date.parse(value) if value.present?

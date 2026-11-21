@@ -1,0 +1,52 @@
+<% content_for :title, "Income/Expense Comparison" %>
+<h1 class="text-2xl font-bold mb-6">Income/Expense Comparison</h1>
+
+<%= form_with url: income_expense_comparison_path, method: :get, class: "mb-6 flex flex-wrap items-center gap-6" do |form| %>
+  <div class="flex items-center gap-4">
+    <label class="flex items-center gap-2 font-bold">
+      <%= form.radio_button :account_type, "income", checked: @account_type == "income", onchange: "this.form.requestSubmit()" %>
+      Income
+    </label>
+    <label class="flex items-center gap-2 font-bold">
+      <%= form.radio_button :account_type, "expense", checked: @account_type == "expense", onchange: "this.form.requestSubmit()" %>
+      Expense
+    </label>
+  </div>
+
+  <div>
+    <%= form.label :account_id, "Account", class: "font-bold mr-2" %>
+    <div class="relative inline-block" data-controller="account-combobox">
+      <%= form.collection_select :account_id, @accounts, :id, :name, { selected: @account&.id, include_blank: "All accounts" }, class: "hidden",
+            onchange: "this.form.requestSubmit()", data: { "account-combobox-target": "select" } %>
+      <input type="text" class="border rounded px-3 py-2 w-56" placeholder="All accounts" autocomplete="off"
+            data-account-combobox-target="input"
+            data-action="input->account-combobox#search focus->account-combobox#open blur->account-combobox#close keydown.enter->account-combobox#selectTopMatch keydown.escape->account-combobox#close" />
+      <ul class="hidden absolute z-10 bg-white border rounded shadow w-56 mt-1 max-h-60 overflow-auto" data-account-combobox-target="list"></ul>
+    </div>
+  </div>
+
+  <div>
+    <%= form.label :view_filter, "View Filter", class: "font-bold mr-2" %>
+    <%= form.select :view_filter,
+          [["This month", "this_month"], ["Last month", "last_month"], ["Last 3 months", "last_3_months"],
+           ["This year", "this_year"], ["Last year", "last_year"], ["All dates", "all_dates"]],
+          { selected: @view_filter }, class: "border rounded px-2 py-1", onchange: "this.form.requestSubmit()" %>
+  </div>
+
+  <div>
+    <%= form.label :period, "Period", class: "font-bold mr-2" %>
+    <%= form.select :period,
+          [["Yearly", "yearly"], ["Quarterly", "quarterly"], ["Monthly", "monthly"],
+           ["Weekly", "weekly"], ["Daily", "daily"]],
+          { selected: @period }, class: "border rounded px-2 py-1", onchange: "this.form.requestSubmit()" %>
+  </div>
+<% end %>
+
+<% if @bars.any? %>
+  <p class="text-gray-500 text-sm mb-2"><%= @account&.name || "All #{@account_type} accounts" %></p>
+  <div data-controller="bar-chart" data-bar-chart-bars-value="<%= @bars.to_json %>" style="height: 420px;">
+    <canvas data-bar-chart-target="canvas"></canvas>
+  </div>
+<% else %>
+  <p class="text-gray-600">No <%= @account&.name || @account_type %> activity in this date range.</p>
+<% end %>

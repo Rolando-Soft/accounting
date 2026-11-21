@@ -7,6 +7,9 @@ import { application } from "./application"
 import AccountComboboxController from "./account_combobox_controller"
 application.register("account-combobox", AccountComboboxController)
 
+import BarChartController from "./bar_chart_controller"
+application.register("bar-chart", BarChartController)
+
 import DifferenceController from "./difference_controller"
 application.register("difference", DifferenceController)
 

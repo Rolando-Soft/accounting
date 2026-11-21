@@ -23,6 +23,7 @@ Rails.application.routes.draw do
   get "reports/cash_flow_statement", to: "reports#cash_flow_statement", as: :cash_flow_statement
   get "reports/account_ledger", to: "reports#account_ledger", as: :account_ledger
   get "reports/income_expense_treemap", to: "reports#income_expense_treemap", as: :income_expense_treemap
+  get "reports/income_expense_comparison", to: "reports#income_expense_comparison", as: :income_expense_comparison
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
