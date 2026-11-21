@@ -213,6 +213,11 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
+"@kurkle/color@^0.3.0":
+  version "0.3.4"
+  resolved "https://registry.yarnpkg.com/@kurkle/color/-/color-0.3.4.tgz#4d4ff677e1609214fc71c580125ddddd86abcabf"
+  integrity sha512-M5UknZPHRu3DEDWoipU6sE8PdkZ6Z/S+v4dD+Ke8IaNlpdSQah50lz1KtcFBa2vsdOnwbbnxJwVM4wty6udA5w==
+
 "@napi-rs/wasm-runtime@^0.2.12":
   version "0.2.12"
   resolved "https://registry.yarnpkg.com/@napi-rs/wasm-runtime/-/wasm-runtime-0.2.12.tgz#3e78a8b96e6c33a6c517e1894efbd5385a7cb6f2"
@@ -443,6 +448,18 @@ braces@^3.0.3:
   integrity sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==
   dependencies:
     fill-range "^7.1.1"
+
+chart.js@^4.6.1:
+  version "4.6.1"
+  resolved "https://registry.yarnpkg.com/chart.js/-/chart.js-4.6.1.tgz#40a924bc0b92544ed66fa3f4873981152fc62c52"
+  integrity sha512-hJyniucsFmq//EvXYvJ6c6mahPoI3kaxdjVH8awTaJ/fDNWeSqqqArixMJWkWNN6fcYvPU3HneSANFNYtRi61g==
+  dependencies:
+    "@kurkle/color" "^0.3.0"
+
+chartjs-chart-treemap@^5.0.2:
+  version "5.0.2"
+  resolved "https://registry.yarnpkg.com/chartjs-chart-treemap/-/chartjs-chart-treemap-5.0.2.tgz#2418bffd48bf1266cd75a3f3eaddf6049db9dc14"
+  integrity sha512-7CHRsY5cxPN+Lr32NvGlpyURuHCBHzlLKDTqkBN7pPXHXJeTYXI5TH7ZBShus8syV1tUWvMWJLpxBkNZbN0qFA==
 
 chownr@^3.0.0:
   version "3.0.0"

@@ -1,0 +1,48 @@
+<% content_for :title, "Income & Expense Treemap" %>
+<h1 class="text-2xl font-bold mb-6">Income &amp; Expense Treemap</h1>
+
+<%= form_with url: income_expense_treemap_path, method: :get, class: "mb-6 flex flex-wrap items-center gap-6" do |form| %>
+  <div class="flex items-center gap-4">
+    <label class="flex items-center gap-2 font-bold">
+      <%= form.radio_button :account_type, "income", checked: @account_type == "income", onchange: "this.form.requestSubmit()" %>
+      Income
+    </label>
+    <label class="flex items-center gap-2 font-bold">
+      <%= form.radio_button :account_type, "expense", checked: @account_type == "expense", onchange: "this.form.requestSubmit()" %>
+      Expense
+    </label>
+  </div>
+
+  <div>
+    <%= form.label :view_filter, "View Filter", class: "font-bold mr-2" %>
+    <%= form.select :view_filter,
+          [["This month", "this_month"], ["Last month", "last_month"], ["Last 3 months", "last_3_months"],
+           ["This year", "this_year"], ["Last year", "last_year"], ["All dates", "all_dates"]],
+          { selected: @view_filter }, class: "border rounded px-2 py-1", onchange: "this.form.requestSubmit()" %>
+  </div>
+<% end %>
+
+<% if @tiles.any? %>
+  <div data-controller="treemap-chart" data-treemap-chart-tiles-value="<%= @tiles.to_json %>" style="height: 420px;" class="mb-6">
+    <canvas data-treemap-chart-target="canvas"></canvas>
+  </div>
+
+  <table class="table-auto w-full mb-6">
+    <thead>
+      <tr>
+        <th class="border border-blue-300 px-3 py-2 text-left">Account</th>
+        <th class="border border-blue-300 px-3 py-2 text-right">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @tiles.each do |tile| %>
+        <tr>
+          <td class="border border-blue-300 px-3 py-2"><%= tile[:name] %></td>
+          <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(tile[:value]) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p class="text-gray-600">No <%= @account_type %> activity in this date range.</p>
+<% end %>

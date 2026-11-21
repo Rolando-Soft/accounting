@@ -76,6 +76,24 @@ class ReportsController < ApplicationController
     end
   end
 
+  # A treemap of leaf income or expense accounts, each tile sized by its
+  # total activity within the view filter's date range — a shape for
+  # spotting where the money is concentrated that a table doesn't give you.
+  def income_expense_treemap
+    @account_type = %w[income expense].include?(params[:account_type]) ? params[:account_type] : "income"
+    @view_filter = normalize_view_filter(params[:view_filter])
+    from, to = view_filter_range(@view_filter)
+
+    accounts = Account.where(account_type: @account_type).postable.includes(entries: :journal_transaction)
+    @tiles = accounts.filter_map do |account|
+      total = account.entries.sum do |entry|
+        date = entry.journal_transaction.date
+        from.nil? || date.between?(from, to) ? entry.signed_amount : 0
+      end
+      { name: account.name, value: total } if total.positive?
+    end.sort_by { |tile| -tile[:value] }
+  end
+
   private
 
   def parse_date(value)

@@ -22,5 +22,8 @@ application.register("payee-autocomplete", PayeeAutocompleteController)
 import RowLinkController from "./row_link_controller"
 application.register("row-link", RowLinkController)
 
+import TreemapChartController from "./treemap_chart_controller"
+application.register("treemap-chart", TreemapChartController)
+
 import TypeToConfirmController from "./type_to_confirm_controller"
 application.register("type-to-confirm", TypeToConfirmController)
