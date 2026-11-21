@@ -4,27 +4,40 @@
 
 <% content_for :title, "Accounts" %>
 
-<h1 class="text-2xl font-bold mb-6">Accounts</h1>
+<div data-controller="keyboard-shortcut" data-keyboard-shortcut-key-value="n" data-keyboard-shortcut-url-value="<%= new_account_path %>">
+  <h1 class="text-2xl font-bold mb-6">Accounts</h1>
 
-<table id="accounts" class="table-auto w-full mb-6">
-  <thead>
-    <tr>
-      <th class="border border-blue-300 px-3 py-2 text-left">Name</th>
-      <th class="border border-blue-300 px-3 py-2 text-left">Description</th>
-      <th class="border border-blue-300 px-3 py-2 text-left">Cash Flow Category</th>
-      <th class="border border-blue-300 px-3 py-2">Actions</th>
-    </tr>
-  </thead>
-  <% @accounts_by_type.each do |type, roots| %>
-    <tbody>
-      <tr class="bg-gray-100">
-        <th colspan="4" class="border border-blue-300 px-3 py-2 text-left"><%= Account::TYPE_LABELS[type] %></th>
-      </tr>
-      <% roots.each do |account| %>
-        <%= render "account_node", account: account, depth: 0 %>
-      <% end %>
-    </tbody>
+  <%= form_with url: accounts_path, method: :get, class: "mb-6 flex flex-wrap items-center gap-4" do %>
+    <%= hidden_field_tag :account_types_submitted, "1" %>
+    <% Account::TYPE_LABELS.each do |type, label| %>
+      <label class="flex items-center gap-1">
+        <%= check_box_tag "account_types[]", type, @selected_types.include?(type),
+              id: "account_type_#{type}", onchange: "this.form.requestSubmit()" %>
+        <%= label %>
+      </label>
+    <% end %>
   <% end %>
-</table>
 
-<%= link_to "New account", new_account_path, class: "inline-block mt-8 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" %>
+  <table id="accounts" class="table-auto w-full mb-6">
+    <thead>
+      <tr>
+        <th class="border border-blue-300 px-3 py-2 text-left">Name</th>
+        <th class="border border-blue-300 px-3 py-2 text-left">Description</th>
+        <th class="border border-blue-300 px-3 py-2 text-left">Cash Flow Category</th>
+        <th class="border border-blue-300 px-3 py-2">Actions</th>
+      </tr>
+    </thead>
+    <% @accounts_by_type.each do |type, roots| %>
+      <tbody>
+        <tr class="bg-gray-100">
+          <th colspan="4" class="border border-blue-300 px-3 py-2 text-left"><%= Account::TYPE_LABELS[type] %></th>
+        </tr>
+        <% roots.each do |account| %>
+          <%= render "account_node", account: account, depth: 0 %>
+        <% end %>
+      </tbody>
+    <% end %>
+  </table>
+
+  <%= link_to "New account (n)", new_account_path, class: "inline-block mt-8 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" %>
+</div>

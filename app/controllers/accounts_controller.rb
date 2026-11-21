@@ -3,7 +3,15 @@ class AccountsController < ApplicationController
 
   # GET /accounts or /accounts.json
   def index
-    @accounts_by_type = Account.account_types.keys.each_with_object({}) do |type, hash|
+    all_types = Account.account_types.keys
+    if params[:account_types_submitted]
+      @selected_types = all_types & Array(params[:account_types])
+      session[:account_types_filter] = @selected_types
+    else
+      @selected_types = all_types & (session[:account_types_filter] || all_types)
+    end
+
+    @accounts_by_type = @selected_types.each_with_object({}) do |type, hash|
       roots = Account.where(account_type: type, parent_id: nil).order(:name)
       hash[type] = roots if roots.any?
     end

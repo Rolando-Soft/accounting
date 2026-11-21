@@ -19,6 +19,9 @@ application.register("hello", HelloController)
 import JournalFormController from "./journal_form_controller"
 application.register("journal-form", JournalFormController)
 
+import KeyboardShortcutController from "./keyboard_shortcut_controller"
+application.register("keyboard-shortcut", KeyboardShortcutController)
+
 import PayeeAutocompleteController from "./payee_autocomplete_controller"
 application.register("payee-autocomplete", PayeeAutocompleteController)
 
