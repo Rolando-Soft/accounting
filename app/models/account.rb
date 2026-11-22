@@ -30,12 +30,6 @@ class Account < ApplicationRecord
   # offer accounts that are actually postable.
   scope :postable, -> { where.not(id: Account.where.not(parent_id: nil).select(:parent_id)) }
 
-  # Excludes accounts flagged "primary" — used where an account is being
-  # chosen to post a transaction against (the register, a journal entry's
-  # account picker), not where primary accounts are merely listed or
-  # identified (the accounts index, parent-account picker).
-  scope :not_primary, -> { where(primary: false) }
-
   # The entry_type ("debit" or "credit") that increases this account's balance.
   NORMAL_BALANCE = {
     "asset" => "debit",
@@ -50,7 +44,7 @@ class Account < ApplicationRecord
   end
 
   def label_with_type
-    "#{"★ " if primary?}#{name} (#{TYPE_LABELS[account_type]})"
+    "#{name} (#{TYPE_LABELS[account_type]})"
   end
 
   # Fuzzy-matches `term` against `name`: a plain substring match always

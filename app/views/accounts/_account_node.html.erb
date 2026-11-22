@@ -4,7 +4,7 @@
     data-row-link-url-value="<%= edit_account_path(account) %>"
     data-action="click->row-link#visit">
   <td class="border border-blue-300 px-3 py-2" style="padding-left: <%= 0.75 + depth * 1.5 %>rem;">
-    <%= "↳ " if depth > 0 %><%= "★ " if account.primary? %><%= account.name %>
+    <%= "↳ " if depth > 0 %><%= account.name %>
   </td>
   <td class="border border-blue-300 px-3 py-2"><%= account.description %></td>
   <td class="border border-blue-300 px-3 py-2"><%= account.cash_flow_category&.titleize || "—" %></td>
