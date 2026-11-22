@@ -3,6 +3,7 @@ require "test_helper"
 class AccountsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @account = accounts(:one)
+    sign_in_as users(:one)
     post switch_workspace_path(@account.workspace)
   end
 

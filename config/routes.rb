@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  resource :session
+  resources :passwords, param: :token
+  resource :setup, only: %i[ new create ]
   resources :entries do
     collection do
       post :reconcile

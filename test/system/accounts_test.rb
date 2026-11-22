@@ -10,6 +10,7 @@ class AccountsTest < ApplicationSystemTestCase
     # Removing every other workspace makes the fixture's workspace the only
     # — and therefore the default — one.
     Workspace.where.not(id: @account.workspace_id).destroy_all
+    sign_in_as users(:one)
   end
 
   test "visiting the index" do
