@@ -6,13 +6,25 @@ class AccountsController < ApplicationController
     all_types = Account.account_types.keys
     if params[:account_types_submitted]
       @selected_types = all_types & Array(params[:account_types])
+      @search = params[:q].to_s.strip
       session[:account_types_filter] = @selected_types
+      session[:account_search] = @search
     else
       @selected_types = all_types & (session[:account_types_filter] || all_types)
+      @search = session[:account_search].to_s
     end
 
+    # While searching, each type's rows are the matches themselves (flat,
+    # regardless of parent_id) instead of the usual root-accounts-down tree,
+    # since a match could be buried several levels deep.
+    matched_ids = Account.search_by_name(@search).map(&:id) if @search.present?
+
     @accounts_by_type = @selected_types.each_with_object({}) do |type, hash|
-      roots = Account.where(account_type: type, parent_id: nil).order(:name)
+      roots = if matched_ids
+        Account.where(account_type: type, id: matched_ids).order(:name)
+      else
+        Account.where(account_type: type, parent_id: nil).order(:name)
+      end
       hash[type] = roots if roots.any?
     end
   end
@@ -77,6 +89,6 @@ class AccountsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def account_params
-      params.expect(account: [ :name, :account_type, :description, :cash_flow_category, :parent_id ])
+      params.expect(account: [ :name, :account_type, :description, :cash_flow_category, :parent_id, :primary ])
     end
 end

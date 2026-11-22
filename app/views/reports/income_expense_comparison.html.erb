@@ -16,7 +16,7 @@
   <div>
     <%= form.label :account_id, "Account", class: "font-bold mr-2" %>
     <div class="relative inline-block" data-controller="account-combobox">
-      <%= form.collection_select :account_id, @accounts, :id, :name, { selected: @account&.id, include_blank: "All accounts" }, class: "hidden",
+      <%= form.collection_select :account_id, @accounts, :id, :label_with_type, { selected: @account&.id, include_blank: "All accounts" }, class: "hidden",
             onchange: "this.form.requestSubmit()", data: { "account-combobox-target": "select" } %>
       <input type="text" class="border rounded px-3 py-2 w-56" placeholder="All accounts" autocomplete="off"
             data-account-combobox-target="input"

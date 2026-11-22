@@ -12,7 +12,7 @@
 
   <div class="mb-4">
     <%= form.label :name, class: "block text-gray-700 font-semibold mb-1" %>
-    <%= form.text_field :name, class: "w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300" %>
+    <%= form.text_field :name, autofocus: true, class: "w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300" %>
   </div>
 
   <div class="mb-4">
@@ -81,6 +81,13 @@
             data-action="input->account-combobox#search focus->account-combobox#open blur->account-combobox#close keydown.enter->account-combobox#selectTopMatch keydown.escape->account-combobox#close" />
       <ul class="hidden absolute z-10 bg-white border rounded shadow w-full mt-1 max-h-60 overflow-auto" data-account-combobox-target="list"></ul>
     </div>
+  </div>
+
+  <div class="mb-4">
+    <label class="flex items-center gap-2 text-gray-700 font-semibold">
+      <%= form.check_box :primary %>
+      ★ Primary account
+    </label>
   </div>
 
   <div>

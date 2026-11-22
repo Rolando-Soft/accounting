@@ -28,6 +28,9 @@ application.register("payee-autocomplete", PayeeAutocompleteController)
 import RowLinkController from "./row_link_controller"
 application.register("row-link", RowLinkController)
 
+import ToggleAllController from "./toggle_all_controller"
+application.register("toggle-all", ToggleAllController)
+
 import TreemapChartController from "./treemap_chart_controller"
 application.register("treemap-chart", TreemapChartController)
 

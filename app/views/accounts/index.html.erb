@@ -9,13 +9,25 @@
 
   <%= form_with url: accounts_path, method: :get, class: "mb-6 flex flex-wrap items-center gap-4" do %>
     <%= hidden_field_tag :account_types_submitted, "1" %>
-    <% Account::TYPE_LABELS.each do |type, label| %>
-      <label class="flex items-center gap-1">
-        <%= check_box_tag "account_types[]", type, @selected_types.include?(type),
-              id: "account_type_#{type}", onchange: "this.form.requestSubmit()" %>
-        <%= label %>
-      </label>
-    <% end %>
+    <div class="flex items-center gap-3" data-controller="toggle-all">
+      <%= button_tag "All/None", type: "button", data: { action: "toggle-all#toggle" },
+            class: "text-sm text-blue-600 hover:underline bg-transparent border-0 p-0 cursor-pointer" %>
+      <% Account::TYPE_LABELS.each do |type, label| %>
+        <label class="flex items-center gap-1">
+          <%= check_box_tag "account_types[]", type, @selected_types.include?(type),
+                id: "account_type_#{type}", onchange: "this.form.requestSubmit()", data: { "toggle-all-target": "checkbox" } %>
+          <%= label %>
+        </label>
+      <% end %>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <%= text_field_tag :q, @search, placeholder: "Search accounts…", class: "border rounded px-3 py-2 w-56" %>
+      <%= submit_tag "Search", class: "bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600 cursor-pointer" %>
+      <% if @search.present? %>
+        <%= link_to "Clear", accounts_path(account_types_submitted: "1", account_types: @selected_types), class: "text-blue-600 hover:underline" %>
+      <% end %>
+    </div>
   <% end %>
 
   <table id="accounts" class="table-auto w-full mb-6">
@@ -33,7 +45,7 @@
           <th colspan="4" class="border border-blue-300 px-3 py-2 text-left"><%= Account::TYPE_LABELS[type] %></th>
         </tr>
         <% roots.each do |account| %>
-          <%= render "account_node", account: account, depth: 0 %>
+          <%= render "account_node", account: account, depth: 0, flat: @search.present? %>
         <% end %>
       </tbody>
     <% end %>

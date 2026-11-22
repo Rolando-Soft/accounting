@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_11_20_120000) do
+ActiveRecord::Schema[8.0].define(version: 2026_11_22_162033) do
   create_table "accounts", force: :cascade do |t|
     t.string "name"
     t.integer "account_type"
@@ -20,6 +20,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_11_20_120000) do
     t.integer "cash_flow_category"
     t.integer "parent_id"
     t.integer "workspace_id", null: false
+    t.boolean "primary", default: false, null: false
     t.index ["parent_id"], name: "index_accounts_on_parent_id"
     t.index ["workspace_id"], name: "index_accounts_on_workspace_id"
   end

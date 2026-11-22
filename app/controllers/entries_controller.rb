@@ -63,7 +63,7 @@ class EntriesController < ApplicationController
   # visible entries) from a params-like hash, so index and the
   # turbo_stream branch of update share one source of truth.
   def load_register(source_params)
-    @accounts = Account.where(account_type: REGISTER_ACCOUNT_TYPES).postable.ordered_by_type
+    @accounts = Account.where(account_type: REGISTER_ACCOUNT_TYPES).postable.not_primary.ordered_by_type
     @account = @accounts.find_by(id: source_params[:account_id]) || @accounts.first
 
     @view_filter = normalize_view_filter(source_params[:view_filter])

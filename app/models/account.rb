@@ -30,6 +30,12 @@ class Account < ApplicationRecord
   # offer accounts that are actually postable.
   scope :postable, -> { where.not(id: Account.where.not(parent_id: nil).select(:parent_id)) }
 
+  # Excludes accounts flagged "primary" — used where an account is being
+  # chosen to post a transaction against (the register, a journal entry's
+  # account picker), not where primary accounts are merely listed or
+  # identified (the accounts index, parent-account picker).
+  scope :not_primary, -> { where(primary: false) }
+
   # The entry_type ("debit" or "credit") that increases this account's balance.
   NORMAL_BALANCE = {
     "asset" => "debit",
@@ -44,7 +50,38 @@ class Account < ApplicationRecord
   end
 
   def label_with_type
-    "#{name} (#{TYPE_LABELS[account_type]})"
+    "#{"★ " if primary?}#{name} (#{TYPE_LABELS[account_type]})"
+  end
+
+  # Fuzzy-matches `term` against `name`: a plain substring match always
+  # counts, and a short Levenshtein distance catches typos.
+  def self.search_by_name(term, max_distance: 2)
+    return none if term.blank?
+
+    normalized_term = term.strip.downcase
+    where.not(name: [ nil, "" ]).select do |account|
+      normalized_name = account.name.downcase
+      normalized_name.include?(normalized_term) ||
+        levenshtein_distance(normalized_name, normalized_term) <= max_distance
+    end
+  end
+
+  def self.levenshtein_distance(a, b)
+    costs = (0..b.length).to_a
+    a.each_char.with_index do |char_a, i|
+      costs[0] = i + 1
+      previous = i
+      b.each_char.with_index do |char_b, j|
+        current = costs[j + 1]
+        costs[j + 1] = if char_a == char_b
+          previous
+        else
+          [ costs[j] + 1, costs[j + 1] + 1, previous + 1 ].min
+        end
+        previous = current
+      end
+    end
+    costs[b.length]
   end
 
   validates :name, presence: true, uniqueness: { scope: :workspace_id }

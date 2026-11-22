@@ -3,10 +3,11 @@
   debit_value = entry.debit_amount || (entry.debit? ? entry.amount : nil)
   credit_value = entry.credit_amount || (entry.credit? ? entry.amount : nil)
 
-  # Parent accounts can't hold entries (see Entry#account_must_not_have_children),
-  # so they're excluded here — except an entry's own already-selected account,
-  # kept so editing an older entry never silently loses its account.
-  selectable_accounts = Account.ordered_by_type.postable.to_a
+  # Parent accounts can't hold entries (see Entry#account_must_not_have_children)
+  # and primary accounts are deliberately excluded from selection here, except
+  # an entry's own already-selected account, kept so editing an older entry
+  # never silently loses its account.
+  selectable_accounts = Account.ordered_by_type.postable.not_primary.to_a
   if entry.account_id && selectable_accounts.none? { |a| a.id == entry.account_id }
     selectable_accounts << Account.find_by(id: entry.account_id)
     selectable_accounts.compact!
