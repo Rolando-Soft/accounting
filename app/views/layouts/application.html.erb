@@ -112,11 +112,12 @@
       <%= link_to "Workspaces", workspaces_path, class: "text-white font-semibold hover:text-blue-300" %>
 
       <% if Current.workspace %>
-        <div class="relative group ml-auto">
-          <button type="button" class="text-white font-semibold bg-gray-700 px-3 py-1 rounded hover:bg-gray-600">
+        <div class="relative ml-auto" data-controller="dropdown" data-action="click@document->dropdown#closeIfOutside">
+          <button type="button" data-action="click->dropdown#toggle"
+                  class="text-white font-semibold bg-gray-700 px-3 py-1 rounded hover:bg-gray-600">
             <%= Current.workspace.name %> ▾
           </button>
-          <div class="hidden group-hover:block absolute right-0 z-10 bg-white border rounded shadow w-48 mt-1">
+          <div data-dropdown-target="menu" class="hidden absolute right-0 z-10 bg-white border rounded shadow w-48 mt-1">
             <% Workspace.order(:name).each do |workspace| %>
               <%= button_to workspace.name, switch_workspace_path(workspace), method: :post,
                     class: "w-full text-left px-3 py-2 hover:bg-gray-100 bg-transparent border-0 cursor-pointer text-gray-800 #{"font-bold" if workspace == Current.workspace}" %>

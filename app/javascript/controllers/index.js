@@ -16,6 +16,9 @@ application.register("bar-chart", BarChartController)
 import DifferenceController from "./difference_controller"
 application.register("difference", DifferenceController)
 
+import DropdownController from "./dropdown_controller"
+application.register("dropdown", DropdownController)
+
 import HelloController from "./hello_controller"
 application.register("hello", HelloController)
 
