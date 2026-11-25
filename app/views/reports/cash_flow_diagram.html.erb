@@ -1,0 +1,25 @@
+<% content_for :title, "Cash Flow Diagram" %>
+<h1 class="text-2xl font-bold mb-6">Cash Flow Diagram</h1>
+
+<%= form_with url: cash_flow_diagram_path, method: :get, class: "mb-6 flex items-center gap-4" do |form| %>
+  <div class="flex items-center gap-2">
+    <%= form.label :end_date, "Through", class: "font-bold" %>
+    <%= form.date_field :end_date, value: @end_date, class: "border rounded px-3 py-2", onchange: "this.form.requestSubmit()" %>
+  </div>
+<% end %>
+
+<% if @flows.any? %>
+  <div data-controller="sankey-chart" data-sankey-chart-flows-value="<%= @flows.to_json %>" style="height: 480px;" class="mb-6">
+    <canvas data-sankey-chart-target="canvas"></canvas>
+  </div>
+<% else %>
+  <p class="text-gray-600">No cash flow activity in this period.</p>
+<% end %>
+
+<p class="text-gray-500 text-sm">
+  Shows the same figures as the <%= link_to "Cash Flow Statement", cash_flow_statement_path, class: "text-blue-600 hover:underline" %>
+  for the month ending <%= @end_date.strftime("%b %Y") %>, as a diagram: each account's own effect flows to or from its
+  Operating/Investing/Financing category, a category with a net surplus flows into whichever category is in deficit (or
+  into Ending Cash once every deficit is covered), and Beginning Cash itself supplies a deficit first whenever it's
+  available to.
+</p>

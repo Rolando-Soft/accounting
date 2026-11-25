@@ -456,6 +456,11 @@ chart.js@^4.6.1:
   dependencies:
     "@kurkle/color" "^0.3.0"
 
+chartjs-chart-sankey@^0.24.1:
+  version "0.24.1"
+  resolved "https://registry.yarnpkg.com/chartjs-chart-sankey/-/chartjs-chart-sankey-0.24.1.tgz#caab1dd0b999b73a8898cb650356850667a49bed"
+  integrity sha512-d1y16w3p6i1huCo+NCdVc2luJVLpArueyIf1AbXt92Z9eA11/oPk2+8T+0cIbuhNgBa13Ws9hKkylWPnWthkeQ==
+
 chartjs-chart-treemap@^5.0.2:
   version "5.0.2"
   resolved "https://registry.yarnpkg.com/chartjs-chart-treemap/-/chartjs-chart-treemap-5.0.2.tgz#2418bffd48bf1266cd75a3f3eaddf6049db9dc14"

@@ -68,7 +68,7 @@ Click **New account** (or press **n**) to open the account form. Fill in:
 - **Name** — must be unique within the workspace (the cursor starts here automatically)
 - **Account type** — one of the five types above
 - **Description** — optional free text
-- **Cash flow category** — *required*. Choose **Operating**, **Investing**, or **Financing**. This tells the Cash Flow Statement report how to classify the account's effect on cash. Hover the "?" next to the label for examples of what belongs in each category (e.g. receivables and payables are Operating; equipment and investments are Investing; loans and stock are Financing).
+- **Cash flow category** — *required*. For an **Asset** account, choose **Cash** if the account *is* cash itself (checking, savings, petty cash) — otherwise choose **Operating**, **Investing**, or **Financing** for a non-cash asset (an investment like an ETF, a receivable, equipment), so its own effect shows up correctly on the Cash Flow Statement and Cash Flow Diagram instead of being treated as just another cash account that cancels out. Every other account type always picks Operating, Investing, or Financing. Hover the "?" next to the label for examples of what belongs in each category (e.g. receivables and payables are Operating; equipment and investments are Investing; loans and stock are Financing).
 - **Parent account** — optional. Use this to build a hierarchy, e.g. a "Utilities" parent with "Electric" and "Water" children. A parent must be the same account type as its children, and **only "leaf" accounts (ones with no children) can actually hold transactions** — once an account has a child, it's automatically dropped from every account-picker dropdown used for posting transactions (the register and the journal-entry form), since transactions can only post to the leaf accounts underneath it.
 
 Editing an account reuses the same form — click any account row to open it.
@@ -171,14 +171,16 @@ The **Reports** page is a directory of every report, grouped by category:
 
 **Income & Spending**
 - **Income Statement** — Income and Expense totals and Net Income for a chosen month, with 1–3 month comparison columns, child-account toggle, and zero-balance hiding, same as the Balance Sheet.
-- **Income & Expense Treemap** — a visual map of leaf income or expense accounts, sized by total activity in your chosen date range, for spotting at a glance where money is concentrated.
+- **Expense Treemap** — a visual map of leaf expense accounts, sized by total activity in your chosen date range, for spotting at a glance where money is concentrated.
+- **Income/Expense Comparison** — a bar chart of one income or expense account type's totals over time, bucketed by year, quarter, month, week, or day, for spotting trends.
 
 **Cash Flow**
-- **Cash Flow Statement** — your net change in cash for a chosen month (with 1–3 month comparisons), broken into Operating, Investing, and Financing activity based on each account's **Cash flow category** (set when you created the account — see §2.3).
+- **Cash Flow Statement** — your net change in cash for a chosen month (with 1–3 month comparisons), broken into Operating, Investing, and Financing activity based on each account's **Cash flow category** (set when you created the account — see §2.3). "Cash" here means your Asset accounts categorized **Cash**; a non-cash asset (an investment, say) shows its own effect under its own category instead.
+- **Cash Flow Diagram** — the Cash Flow Statement's own numbers for a single month, as a Sankey diagram instead of a table: each account flows into or out of its Operating/Investing/Financing category, a category with a surplus flows into whichever category ran a deficit that month (or into Ending Cash once every deficit is covered), and your existing cash balance covers a deficit first whenever there's enough of it. The total reaching "Ending Cash" always matches the statement's own ending balance exactly.
+- **Funds Flow Diagram** — a Sankey diagram for your chosen date range showing where money came from and where it went: each income account flows into a central "Income" node, which fans out to every expense account it funded. Whatever's left over flows to a green "Net Savings" band; if expenses outran income instead, a red "Shortfall" band flows in to make up the difference. Hover any band for its exact amount.
 
 **Ledgers & Detail**
 - **Account Ledger** — pick any account and see every entry ever posted to it, oldest first, with a running balance — useful for drilling into any line from the other reports.
-- **Income/Expense Comparison** — a bar chart of one income or expense account type's totals over time, bucketed by year, quarter, month, week, or day, for spotting trends.
 
 All reports respect your currently active workspace (§6) — they never mix data across workspaces.
 

@@ -11,7 +11,7 @@ class Account < ApplicationRecord
   has_many :journal_transactions, through: :entries
 
   enum :account_type, {asset: 0, liability: 1, income: 2, expense: 3, equity: 4}
-  enum :cash_flow_category, {operating: 0, investing: 1, financing: 2}, allow_nil: true
+  enum :cash_flow_category, {operating: 0, investing: 1, financing: 2, cash: 3}, allow_nil: true
 
   TYPE_LABELS = {
     "asset" => "Assets",
@@ -29,6 +29,12 @@ class Account < ApplicationRecord
   # Entry#account_must_not_have_children), so transaction forms should only
   # offer accounts that are actually postable.
   scope :postable, -> { where.not(id: Account.where.not(parent_id: nil).select(:parent_id)) }
+
+  # The accounts the Cash Flow Statement treats as cash itself (vs. an asset
+  # whose cash_flow_category tracks its own cash effect, e.g. investments or
+  # receivables) — an Asset account whose cash_flow_category is "cash".
+  scope :cash, -> { where(account_type: "asset", cash_flow_category: cash_flow_categories[:cash]) }
+  scope :non_cash, -> { where.not(account_type: "asset", cash_flow_category: cash_flow_categories[:cash]) }
 
   # The entry_type ("debit" or "credit") that increases this account's balance.
   NORMAL_BALANCE = {
@@ -86,8 +92,15 @@ class Account < ApplicationRecord
   validate :parent_must_have_same_account_type
   validate :parent_must_have_same_workspace
   validate :parent_cannot_create_cycle
+  validate :cash_category_only_for_asset_accounts
 
   private
+  def cash_category_only_for_asset_accounts
+    if cash_flow_category == "cash" && account_type != "asset"
+      errors.add(:cash_flow_category, "can only be \"Cash\" for an Asset account")
+    end
+  end
+
   def ensure_no_journal_transactions
     if entries.exists?
       errors.add(:base, "Cannot delete account with associated journal transactions")

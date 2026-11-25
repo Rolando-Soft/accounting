@@ -24,8 +24,10 @@ Rails.application.routes.draw do
   get "reports/balance_sheet", to: "reports#balance_sheet", as: :balance_sheet
   get "reports/income_statement", to: "reports#income_statement", as: :income_statement
   get "reports/cash_flow_statement", to: "reports#cash_flow_statement", as: :cash_flow_statement
+  get "reports/cash_flow_diagram", to: "reports#cash_flow_diagram", as: :cash_flow_diagram
+  get "reports/funds_flow_diagram", to: "reports#funds_flow_diagram", as: :funds_flow_diagram
   get "reports/account_ledger", to: "reports#account_ledger", as: :account_ledger
-  get "reports/income_expense_treemap", to: "reports#income_expense_treemap", as: :income_expense_treemap
+  get "reports/expense_treemap", to: "reports#expense_treemap", as: :expense_treemap
   get "reports/income_expense_comparison", to: "reports#income_expense_comparison", as: :income_expense_comparison
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

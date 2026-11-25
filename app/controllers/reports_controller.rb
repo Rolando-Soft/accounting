@@ -46,6 +46,34 @@ class ReportsController < ApplicationController
     @columns = @ranges.map { |from, to| cash_flow_column(from, to) }
   end
 
+  CASH_FLOW_CATEGORY_LABELS = { "operating" => "Operating", "investing" => "Investing", "financing" => "Financing" }.freeze
+
+  # The Cash Flow Statement's own numbers (cash_flow_column), reshaped into
+  # a Sankey: Beginning Cash funds whichever categories drew cash down,
+  # categories that added cash flow into Ending Cash, and each account's
+  # own effect is shown flowing to/from its category — so this never
+  # computes anything the statement doesn't already show, only redraws it.
+  def cash_flow_diagram
+    @end_date = parse_date(params[:end_date]) || Date.current
+    from, to = period_ranges(@end_date, 1).first
+    column = cash_flow_column(from, to)
+
+    @flows = []
+
+    CASH_FLOW_CATEGORY_LABELS.each do |category, label|
+      column[:category_rows][category].each do |account, effect|
+        next if effect.zero?
+        if effect.positive?
+          @flows << { from: account.name, to: label, flow: effect }
+        else
+          @flows << { from: label, to: account.name, flow: -effect }
+        end
+      end
+    end
+
+    @flows.concat(cash_reconciliation_flows(column))
+  end
+
   # A single account's transaction history — every entry posted to it,
   # oldest first, with a running balance — so a Balance Sheet/Income
   # Statement line can be drilled into. Any account type is selectable
@@ -76,15 +104,14 @@ class ReportsController < ApplicationController
     end
   end
 
-  # A treemap of leaf income or expense accounts, each tile sized by its
-  # total activity within the view filter's date range — a shape for
-  # spotting where the money is concentrated that a table doesn't give you.
-  def income_expense_treemap
-    @account_type = %w[income expense].include?(params[:account_type]) ? params[:account_type] : "expense"
+  # A treemap of leaf expense accounts, each tile sized by its total
+  # activity within the view filter's date range — a shape for spotting
+  # where the money is concentrated that a table doesn't give you.
+  def expense_treemap
     @view_filter = normalize_view_filter(params[:view_filter])
     from, to = view_filter_range(@view_filter)
 
-    accounts = Account.where(account_type: @account_type).postable.includes(entries: :journal_transaction)
+    accounts = Account.where(account_type: "expense").postable.includes(entries: :journal_transaction)
     @tiles = accounts.filter_map do |account|
       total = account.entries.sum do |entry|
         date = entry.journal_transaction.date
@@ -92,6 +119,37 @@ class ReportsController < ApplicationController
       end
       { name: account.name, value: total } if total.positive?
     end.sort_by { |tile| -tile[:value] }
+  end
+
+  # Where money came from and where it went, as a Sankey diagram: each
+  # income account flows into a central "Income" node, which flows out to
+  # each expense account; the gap between total income and total expense
+  # becomes a final "Net Savings" (or "Shortfall") flow, so the diagram
+  # balances even though real income/expense never exactly match.
+  def funds_flow_diagram
+    @view_filter = normalize_view_filter(params[:view_filter])
+    from, to = view_filter_range(@view_filter)
+
+    income_by_account = balances_by_account(%w[income], upto: to || Date.current, from: from)
+      .select { |_id, balance| balance.positive? }
+    expense_by_account = balances_by_account(%w[expense], upto: to || Date.current, from: from)
+      .select { |_id, balance| balance.positive? }
+
+    total_income = income_by_account.values.sum
+    total_expense = expense_by_account.values.sum
+
+    @flows = []
+    Account.where(id: income_by_account.keys).each do |account|
+      @flows << { from: account.name, to: "Income", flow: income_by_account[account.id] }
+    end
+    Account.where(id: expense_by_account.keys).each do |account|
+      @flows << { from: "Income", to: account.name, flow: expense_by_account[account.id] }
+    end
+    if total_income > total_expense
+      @flows << { from: "Income", to: "Net Savings", flow: total_income - total_expense }
+    elsif total_expense > total_income
+      @flows << { from: "Shortfall", to: "Income", flow: total_expense - total_income }
+    end
   end
 
   PERIODS = %w[yearly quarterly monthly weekly daily].freeze
@@ -120,6 +178,50 @@ class ReportsController < ApplicationController
   end
 
   private
+
+  # Flows that reconcile Beginning Cash to Ending Cash through each
+  # category's net effect, without ever drawing a negative-amount flow (a
+  # category in deficit instead *receives* from whichever surplus is
+  # funding it, Beginning Cash's own balance first, then other categories
+  # in Operating/Investing/Financing order).
+  #
+  # A Beginning Cash balance that started negative still has to be funded
+  # from somewhere before anything is left over for Ending Cash, but
+  # there's no account to draw that edge to — it's tracked as a "need"
+  # with no label, so it silently consumes capacity instead of drawing a
+  # flow, which is what keeps the diagram's Ending Cash total equal to the
+  # statement's actual ending balance.
+  def cash_reconciliation_flows(column)
+    sources = []
+    sources << ["Beginning Cash", column[:beginning_cash]] if column[:beginning_cash].positive?
+    CASH_FLOW_CATEGORY_LABELS.each do |category, label|
+      net = column[:category_totals][category]
+      sources << [label, net] if net.positive?
+    end
+
+    needs = CASH_FLOW_CATEGORY_LABELS.filter_map do |category, label|
+      net = column[:category_totals][category]
+      [label, -net] if net.negative?
+    end
+    needs << [nil, -column[:beginning_cash]] if column[:beginning_cash].negative?
+
+    flows = []
+    needs.each do |need_label, amount|
+      remaining = amount
+      sources.each do |source|
+        next if remaining <= 0 || source[1] <= 0
+        drawn = [source[1], remaining].min
+        flows << { from: source[0], to: need_label, flow: drawn } if need_label
+        source[1] -= drawn
+        remaining -= drawn
+      end
+    end
+
+    sources.each do |label, capacity|
+      flows << { from: label, to: "Ending Cash", flow: capacity } if capacity.positive?
+    end
+    flows
+  end
 
   # [sort_key, label] for the period a date falls in, grouped so entries in
   # the same period collapse into the same bar and bars stay chronological.
@@ -229,9 +331,11 @@ class ReportsController < ApplicationController
   # summed over entries whose transaction date falls within [from, upto]
   # (from is optional) — the account's own entries only, no rollup.
   def balances_by_account(types, upto:, from: nil)
-    accounts = Account.where(account_type: types).includes(entries: :journal_transaction)
+    balances_for_accounts(Account.where(account_type: types), upto: upto, from: from)
+  end
 
-    accounts.index_with do |account|
+  def balances_for_accounts(accounts, upto:, from: nil)
+    accounts.includes(entries: :journal_transaction).index_with do |account|
       account.entries.select do |entry|
         date = entry.journal_transaction.date
         date && date <= upto && (from.nil? || date >= from)
@@ -244,23 +348,24 @@ class ReportsController < ApplicationController
     category_totals = category_rows.transform_values { |rows| rows.sum { |_account, effect| effect } }
     net_change = category_totals.values.sum
 
-    beginning_cash = balances_by_account(%w[asset], upto: from - 1.day).values.sum
-    ending_cash = balances_by_account(%w[asset], upto: to).values.sum
+    beginning_cash = balances_for_accounts(Account.cash, upto: from - 1.day).values.sum
+    ending_cash = balances_for_accounts(Account.cash, upto: to).values.sum
 
     { from: from, to: to, category_rows: category_rows, category_totals: category_totals,
       net_change: net_change, beginning_cash: beginning_cash, ending_cash: ending_cash }
   end
 
   # { "operating" => [[account, cash_effect], ...], "investing" => [...],
-  # "financing" => [...], "uncategorized" => [...] } for every non-asset
-  # account with entries in [from, upto]. cash_effect is the entry's
-  # effect on cash — the negation of its own debit-positive total, per
-  # the zero-sum identity above — not the account's own normal-balance
-  # change (that's what signed_amount gives, and it isn't equivalent once
-  # debit/credit and normal balance disagree, e.g. paying down a
-  # liability).
+  # "financing" => [...], "uncategorized" => [...] } for every non-cash
+  # account (every non-asset account, plus any asset whose own
+  # cash_flow_category isn't "cash", e.g. an investment) with entries in
+  # [from, upto]. cash_effect is the entry's effect on cash — the negation
+  # of its own debit-positive total, per the zero-sum identity above — not
+  # the account's own normal-balance change (that's what signed_amount
+  # gives, and it isn't equivalent once debit/credit and normal balance
+  # disagree, e.g. paying down a liability).
   def non_cash_category_balances(upto:, from:)
-    accounts = Account.where.not(account_type: "asset").postable.includes(entries: :journal_transaction)
+    accounts = Account.non_cash.postable.includes(entries: :journal_transaction)
     grouped = accounts.group_by { |account| account.cash_flow_category || "uncategorized" }
 
     %w[operating investing financing uncategorized].index_with do |category|

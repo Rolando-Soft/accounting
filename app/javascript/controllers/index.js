@@ -7,6 +7,9 @@ import { application } from "./application"
 import AccountComboboxController from "./account_combobox_controller"
 application.register("account-combobox", AccountComboboxController)
 
+import AccountTypeFieldsController from "./account_type_fields_controller"
+application.register("account-type-fields", AccountTypeFieldsController)
+
 import BarChartController from "./bar_chart_controller"
 application.register("bar-chart", BarChartController)
 
@@ -25,8 +28,14 @@ application.register("keyboard-shortcut", KeyboardShortcutController)
 import PayeeAutocompleteController from "./payee_autocomplete_controller"
 application.register("payee-autocomplete", PayeeAutocompleteController)
 
+import ReportsMenuController from "./reports_menu_controller"
+application.register("reports-menu", ReportsMenuController)
+
 import RowLinkController from "./row_link_controller"
 application.register("row-link", RowLinkController)
+
+import SankeyChartController from "./sankey_chart_controller"
+application.register("sankey-chart", SankeyChartController)
 
 import ToggleAllController from "./toggle_all_controller"
 application.register("toggle-all", ToggleAllController)

@@ -1,4 +1,4 @@
-<%= form_with(model: account, html: { class: "max-w-lg mx-auto bg-white p-8 rounded shadow" }) do |form| %>
+<%= form_with(model: account, html: { class: "max-w-lg mx-auto bg-white p-8 rounded shadow", data: { controller: "account-type-fields" } }) do |form| %>
   <% if account.errors.any? %>
     <div class="mb-6 p-4 bg-red-100 border border-red-400 rounded">
       <h2 class="text-red-700 font-bold mb-2"><%= pluralize(account.errors.count, "error") %> prohibited this account from being saved:</h2>
@@ -17,7 +17,7 @@
 
   <div class="mb-4">
     <%= form.label :account_type, class: "block text-gray-700 font-semibold mb-1" %>
-    <%= form.select :account_type, Account.account_types.keys.map{ |key| [key.titleize, key] }, { }, class: "w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300" %>
+    <%= form.select :account_type, Account.account_types.keys.map{ |key| [key.titleize, key] }, { }, class: "w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300", data: { "account-type-fields-target": "accountType", action: "change->account-type-fields#toggle" } %>
   </div>
 
   <div class="mb-4">
@@ -33,6 +33,12 @@
       <div class="relative group">
         <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-300 text-gray-700 text-xs font-bold cursor-help">?</span>
         <div class="hidden group-hover:block absolute z-10 left-0 top-full mt-1 w-80 max-h-[70vh] overflow-y-auto p-3 bg-gray-800 text-gray-100 text-xs rounded shadow-lg">
+          <p class="mb-2">
+            <span class="font-bold">Cash</span> <span class="italic">(Asset accounts only)</span>
+          </p>
+          <ul class="list-disc list-inside mb-3 space-y-0.5">
+            <li>Checking, savings, and petty cash accounts themselves</li>
+          </ul>
           <p class="mb-2">
             <span class="font-bold">Operating</span> <span class="italic">(Current Assets &amp; Current Liabilities)</span>
           </p>
@@ -69,7 +75,11 @@
         </div>
       </div>
     </div>
-    <%= form.select :cash_flow_category, Account.cash_flow_categories.keys.map{ |key| [key.titleize, key] }, { include_blank: "Select a category", selected: account.cash_flow_category }, { class: "w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300", required: true } %>
+    <% category_options = %w[cash operating investing financing].map do |key|
+         html_options = key == "cash" ? { data: { "account-type-fields-target": "cashOption" } } : {}
+         [key.titleize, key, html_options]
+       end %>
+    <%= form.select :cash_flow_category, options_for_select(category_options, account.cash_flow_category), { include_blank: "Select a category" }, { class: "w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300", required: true } %>
   </div>
 
   <div class="mb-4">

@@ -1,18 +1,7 @@
-<% content_for :title, "Income & Expense Treemap" %>
-<h1 class="text-2xl font-bold mb-6">Income &amp; Expense Treemap</h1>
+<% content_for :title, "Expense Treemap" %>
+<h1 class="text-2xl font-bold mb-6">Expense Treemap</h1>
 
-<%= form_with url: income_expense_treemap_path, method: :get, class: "mb-6 flex flex-wrap items-center gap-6" do |form| %>
-  <div class="flex items-center gap-4">
-    <label class="flex items-center gap-2 font-bold">
-      <%= form.radio_button :account_type, "income", checked: @account_type == "income", onchange: "this.form.requestSubmit()" %>
-      Income
-    </label>
-    <label class="flex items-center gap-2 font-bold">
-      <%= form.radio_button :account_type, "expense", checked: @account_type == "expense", onchange: "this.form.requestSubmit()" %>
-      Expense
-    </label>
-  </div>
-
+<%= form_with url: expense_treemap_path, method: :get, class: "mb-6 flex flex-wrap items-center gap-6" do |form| %>
   <div>
     <%= form.label :view_filter, "View Filter", class: "font-bold mr-2" %>
     <%= form.select :view_filter,
@@ -44,5 +33,5 @@
     </tbody>
   </table>
 <% else %>
-  <p class="text-gray-600">No <%= @account_type %> activity in this date range.</p>
+  <p class="text-gray-600">No expense activity in this date range.</p>
 <% end %>

@@ -27,7 +27,88 @@
       <%= link_to "Entries", entries_path, class: "text-white font-semibold hover:text-blue-300" %>
       <%= link_to "Accounts", accounts_path, class: "text-white font-semibold hover:text-blue-300" %>
       <%= link_to "Journal Transactions", journal_transactions_path, class: "text-white font-semibold hover:text-blue-300" %>
-      <%= link_to "Reports", reports_path, class: "text-white font-semibold hover:text-blue-300" %>
+      <div class="relative" data-controller="reports-menu" data-action="click@document->reports-menu#closeIfOutside">
+        <button type="button" data-action="click->reports-menu#toggleMenu"
+                class="text-white font-semibold hover:text-blue-300">
+          Reports ▾
+        </button>
+
+        <div data-reports-menu-target="menu" class="hidden absolute left-0 z-20 mt-2 w-64 bg-white border rounded shadow-lg">
+          <ul class="divide-y divide-gray-200">
+            <li class="relative">
+              <button type="button" data-reports-menu-target="category" data-reports-menu-index-param="0"
+                      data-action="click->reports-menu#toggleSubmenu mouseenter->reports-menu#openOnHover mouseleave->reports-menu#scheduleCloseOnHover"
+                      class="w-full flex items-center justify-between px-4 py-2 text-left text-gray-700 hover:bg-gray-100">
+                <span class="font-semibold">Financial Position</span>
+                <span class="text-gray-400">&rsaquo;</span>
+              </button>
+              <div data-reports-menu-target="submenu"
+                   data-action="mouseenter->reports-menu#cancelScheduledClose mouseleave->reports-menu#scheduleCloseOnHover"
+                   class="hidden w-full bg-gray-50 border-t border-gray-100 z-10 md:absolute md:left-full md:top-0 md:ml-1 md:w-64 md:bg-white md:border md:border-gray-200 md:rounded md:shadow-lg">
+                <ul class="py-1">
+                  <li><%= link_to "Balance Sheet", balance_sheet_path, class: "block px-4 py-2 text-blue-600 hover:bg-gray-100 hover:underline" %></li>
+                </ul>
+              </div>
+            </li>
+
+            <li class="relative">
+              <button type="button" data-reports-menu-target="category" data-reports-menu-index-param="1"
+                      data-action="click->reports-menu#toggleSubmenu mouseenter->reports-menu#openOnHover mouseleave->reports-menu#scheduleCloseOnHover"
+                      class="w-full flex items-center justify-between px-4 py-2 text-left text-gray-700 hover:bg-gray-100">
+                <span class="font-semibold">Income &amp; Spending</span>
+                <span class="text-gray-400">&rsaquo;</span>
+              </button>
+              <div data-reports-menu-target="submenu"
+                   data-action="mouseenter->reports-menu#cancelScheduledClose mouseleave->reports-menu#scheduleCloseOnHover"
+                   class="hidden w-full bg-gray-50 border-t border-gray-100 z-10 md:absolute md:left-full md:top-0 md:ml-1 md:w-64 md:bg-white md:border md:border-gray-200 md:rounded md:shadow-lg">
+                <ul class="py-1">
+                  <li><%= link_to "Income Statement", income_statement_path, class: "block px-4 py-2 text-blue-600 hover:bg-gray-100 hover:underline" %></li>
+                  <li><%= link_to "Expense Treemap", expense_treemap_path, class: "block px-4 py-2 text-blue-600 hover:bg-gray-100 hover:underline" %></li>
+                  <li><%= link_to "Income/Expense Comparison", income_expense_comparison_path, class: "block px-4 py-2 text-blue-600 hover:bg-gray-100 hover:underline" %></li>
+                </ul>
+              </div>
+            </li>
+
+            <li class="relative">
+              <button type="button" data-reports-menu-target="category" data-reports-menu-index-param="2"
+                      data-action="click->reports-menu#toggleSubmenu mouseenter->reports-menu#openOnHover mouseleave->reports-menu#scheduleCloseOnHover"
+                      class="w-full flex items-center justify-between px-4 py-2 text-left text-gray-700 hover:bg-gray-100">
+                <span class="font-semibold">Cash Flow</span>
+                <span class="text-gray-400">&rsaquo;</span>
+              </button>
+              <div data-reports-menu-target="submenu"
+                   data-action="mouseenter->reports-menu#cancelScheduledClose mouseleave->reports-menu#scheduleCloseOnHover"
+                   class="hidden w-full bg-gray-50 border-t border-gray-100 z-10 md:absolute md:left-full md:top-0 md:ml-1 md:w-64 md:bg-white md:border md:border-gray-200 md:rounded md:shadow-lg">
+                <ul class="py-1">
+                  <li><%= link_to "Cash Flow Statement", cash_flow_statement_path, class: "block px-4 py-2 text-blue-600 hover:bg-gray-100 hover:underline" %></li>
+                  <li><%= link_to "Cash Flow Diagram", cash_flow_diagram_path, class: "block px-4 py-2 text-blue-600 hover:bg-gray-100 hover:underline" %></li>
+                  <li><%= link_to "Funds Flow Diagram", funds_flow_diagram_path, class: "block px-4 py-2 text-blue-600 hover:bg-gray-100 hover:underline" %></li>
+                </ul>
+              </div>
+            </li>
+
+            <li class="relative">
+              <button type="button" data-reports-menu-target="category" data-reports-menu-index-param="3"
+                      data-action="click->reports-menu#toggleSubmenu mouseenter->reports-menu#openOnHover mouseleave->reports-menu#scheduleCloseOnHover"
+                      class="w-full flex items-center justify-between px-4 py-2 text-left text-gray-700 hover:bg-gray-100">
+                <span class="font-semibold">Ledgers &amp; Detail</span>
+                <span class="text-gray-400">&rsaquo;</span>
+              </button>
+              <div data-reports-menu-target="submenu"
+                   data-action="mouseenter->reports-menu#cancelScheduledClose mouseleave->reports-menu#scheduleCloseOnHover"
+                   class="hidden w-full bg-gray-50 border-t border-gray-100 z-10 md:absolute md:left-full md:top-0 md:ml-1 md:w-64 md:bg-white md:border md:border-gray-200 md:rounded md:shadow-lg">
+                <ul class="py-1">
+                  <li><%= link_to "Account Ledger", account_ledger_path, class: "block px-4 py-2 text-blue-600 hover:bg-gray-100 hover:underline" %></li>
+                </ul>
+              </div>
+            </li>
+          </ul>
+
+          <div class="border-t border-gray-200">
+            <%= link_to "All reports", reports_path, class: "block px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:underline" %>
+          </div>
+        </div>
+      </div>
       <%= link_to "Workspaces", workspaces_path, class: "text-white font-semibold hover:text-blue-300" %>
 
       <% if Current.workspace %>
