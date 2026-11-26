@@ -68,7 +68,7 @@ class EntriesController < ApplicationController
 
     @view_filter = normalize_view_filter(source_params[:view_filter])
     @selected_statuses = Array(source_params[:statuses]).presence || STATUSES
-    @statement_balance = source_params[:statement_balance].presence&.to_d || 0
+    @statement_balance = source_params[:statement_balance].presence&.delete(",")&.to_d || 0
 
     if @account
       all_entries = @account.entries.includes(journal_transaction: { entries: :account }).to_a

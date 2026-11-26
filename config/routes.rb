@@ -13,6 +13,7 @@ Rails.application.routes.draw do
     end
   end
   resources :accounts, except: :show
+  resources :projects, except: :show
   resources :workspaces, except: :show do
     member do
       post :switch
@@ -29,6 +30,8 @@ Rails.application.routes.draw do
   get "reports/account_ledger", to: "reports#account_ledger", as: :account_ledger
   get "reports/expense_treemap", to: "reports#expense_treemap", as: :expense_treemap
   get "reports/income_expense_comparison", to: "reports#income_expense_comparison", as: :income_expense_comparison
+  get "reports/project_profitability", to: "reports#project_profitability", as: :project_profitability
+  get "reports/project_ledger", to: "reports#project_ledger", as: :project_ledger
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

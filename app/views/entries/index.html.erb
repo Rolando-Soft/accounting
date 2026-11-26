@@ -50,8 +50,9 @@
     <%= render "balance_tile", id: "computed-balance-stat", amount: @computed_balance, label: "Computed", difference_target: "computed" %>
     <div>
       <div class="text-xl font-bold">
-        <%= text_field_tag :statement_balance, @statement_balance, size: 10, class: "border rounded px-2 py-1 w-28", form: "register-filters",
-              data: { "difference-target": "input", action: "input->difference#recompute" } %>
+        <%= text_field_tag :statement_balance, number_with_precision(@statement_balance, precision: 2, delimiter: ","), size: 10,
+              class: "border rounded px-2 py-1 w-28", form: "register-filters",
+              data: { "difference-target": "input", action: "input->difference#recompute blur->difference#reformatStatement" } %>
       </div>
       <div class="text-sm text-gray-600">Statement</div>
     </div>

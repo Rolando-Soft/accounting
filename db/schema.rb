@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_11_23_000000) do
+ActiveRecord::Schema[8.0].define(version: 2026_11_25_201601) do
   create_table "accounts", force: :cascade do |t|
     t.string "name"
     t.integer "account_type"
@@ -33,8 +33,10 @@ ActiveRecord::Schema[8.0].define(version: 2026_11_23_000000) do
     t.datetime "updated_at", null: false
     t.integer "reconciliation_status", default: 0, null: false
     t.string "description"
+    t.integer "project_id"
     t.index ["account_id", "created_at"], name: "index_entries_on_account_id_and_created_at"
     t.index ["journal_transaction_id"], name: "index_entries_on_journal_transaction_id"
+    t.index ["project_id"], name: "index_entries_on_project_id"
     t.index ["reconciliation_status"], name: "index_entries_on_reconciliation_status"
     t.check_constraint "amount > 0", name: "entries_amount_positive"
     t.check_constraint "entry_type IN (0, 1)", name: "entries_entry_type_valid"
@@ -49,6 +51,18 @@ ActiveRecord::Schema[8.0].define(version: 2026_11_23_000000) do
     t.integer "workspace_id", null: false
     t.index ["payee"], name: "index_journal_transactions_on_payee"
     t.index ["workspace_id"], name: "index_journal_transactions_on_workspace_id"
+  end
+
+  create_table "projects", force: :cascade do |t|
+    t.integer "workspace_id", null: false
+    t.string "name", null: false
+    t.string "code"
+    t.integer "status", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["workspace_id", "code"], name: "index_projects_on_workspace_id_and_code", unique: true
+    t.index ["workspace_id", "name"], name: "index_projects_on_workspace_id_and_name", unique: true
+    t.index ["workspace_id"], name: "index_projects_on_workspace_id"
   end
 
   create_table "sessions", force: :cascade do |t|
@@ -79,6 +93,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_11_23_000000) do
   add_foreign_key "accounts", "workspaces"
   add_foreign_key "entries", "accounts", on_delete: :restrict
   add_foreign_key "entries", "journal_transactions", on_delete: :restrict
+  add_foreign_key "entries", "projects", on_delete: :restrict
   add_foreign_key "journal_transactions", "workspaces"
+  add_foreign_key "projects", "workspaces"
   add_foreign_key "sessions", "users"
 end

@@ -6,6 +6,7 @@ class Workspace < ApplicationRecord
   # go through Account.unscoped / JournalTransaction.unscoped instead.
   has_many :accounts
   has_many :journal_transactions
+  has_many :projects
 
   validates :name, presence: true, uniqueness: true
 
@@ -33,6 +34,7 @@ class Workspace < ApplicationRecord
       Entry.where(journal_transaction_id: journal_transaction_ids).delete_all
       JournalTransaction.unscoped.where(workspace_id: id).delete_all
       Account.unscoped.where(workspace_id: id).delete_all
+      Project.unscoped.where(workspace_id: id).delete_all
       destroy!
     end
   end

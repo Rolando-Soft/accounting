@@ -45,11 +45,21 @@
   </div>
 
   <div data-controller="journal-form">
+    <div class="mb-4 flex items-end gap-2">
+      <div>
+        <label class="block text-gray-700 font-bold mb-2">Project</label>
+        <%= collection_select :header, :project_id, Project.order(:name), :id, :label, { include_blank: "Apply to all lines…" },
+              class: "border rounded px-3 py-2", data: { "journal-form-target": "projectHeader", action: "change->journal-form#applyProjectToAllLines" } %>
+      </div>
+      <p class="text-sm text-gray-500 pb-2">Sets every line below to this project — each line can still be changed individually afterward.</p>
+    </div>
+
     <h3 class="text-lg font-bold mb-2">Entries</h3>
 
-    <div class="grid grid-cols-[2fr_2fr_1fr_1fr_auto_auto] gap-2 text-gray-700 font-bold mb-1 text-sm">
+    <div class="grid grid-cols-[2fr_2fr_1.5fr_1fr_1fr_auto_auto] gap-2 text-gray-700 font-bold mb-1 text-sm">
       <div>Account</div>
       <div>Description</div>
+      <div>Project</div>
       <div>DB</div>
       <div>CR</div>
       <div class="text-center">R</div>
@@ -72,9 +82,10 @@
       <button type="button" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" data-action="click->journal-form#add">Entry add</button>
     </div>
 
-    <div class="grid grid-cols-[2fr_2fr_1fr_1fr_auto_auto] gap-2 items-center mt-4 font-bold">
+    <div class="grid grid-cols-[2fr_2fr_1.5fr_1fr_1fr_auto_auto] gap-2 items-center mt-4 font-bold">
       <div></div>
       <div class="text-right">Total</div>
+      <div></div>
       <div data-journal-form-target="totalDebit">0.00</div>
       <div data-journal-form-target="totalCredit">0.00</div>
       <div></div>

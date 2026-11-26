@@ -26,6 +26,7 @@
     <nav class="bg-gray-800 px-6 py-3 flex gap-6 items-center">
       <%= link_to "Entries", entries_path, class: "text-white font-semibold hover:text-blue-300" %>
       <%= link_to "Accounts", accounts_path, class: "text-white font-semibold hover:text-blue-300" %>
+      <%= link_to "Projects", projects_path, class: "text-white font-semibold hover:text-blue-300" %>
       <%= link_to "Journal Transactions", journal_transactions_path, class: "text-white font-semibold hover:text-blue-300" %>
       <div class="relative" data-controller="reports-menu" data-action="click@document->reports-menu#closeIfOutside">
         <button type="button" data-action="click->reports-menu#toggleMenu"
@@ -99,6 +100,23 @@
                    class="hidden w-full bg-gray-50 border-t border-gray-100 z-10 md:absolute md:left-full md:top-0 md:ml-1 md:w-64 md:bg-white md:border md:border-gray-200 md:rounded md:shadow-lg">
                 <ul class="py-1">
                   <li><%= link_to "Account Ledger", account_ledger_path, class: "block px-4 py-2 text-blue-600 hover:bg-gray-100 hover:underline" %></li>
+                </ul>
+              </div>
+            </li>
+
+            <li class="relative">
+              <button type="button" data-reports-menu-target="category" data-reports-menu-index-param="4"
+                      data-action="click->reports-menu#toggleSubmenu mouseenter->reports-menu#openOnHover mouseleave->reports-menu#scheduleCloseOnHover"
+                      class="w-full flex items-center justify-between px-4 py-2 text-left text-gray-700 hover:bg-gray-100">
+                <span class="font-semibold">Projects</span>
+                <span class="text-gray-400">&rsaquo;</span>
+              </button>
+              <div data-reports-menu-target="submenu"
+                   data-action="mouseenter->reports-menu#cancelScheduledClose mouseleave->reports-menu#scheduleCloseOnHover"
+                   class="hidden w-full bg-gray-50 border-t border-gray-100 z-10 md:absolute md:left-full md:top-0 md:ml-1 md:w-64 md:bg-white md:border md:border-gray-200 md:rounded md:shadow-lg">
+                <ul class="py-1">
+                  <li><%= link_to "Project Profitability", project_profitability_path, class: "block px-4 py-2 text-blue-600 hover:bg-gray-100 hover:underline" %></li>
+                  <li><%= link_to "Project Ledger", project_ledger_path, class: "block px-4 py-2 text-blue-600 hover:bg-gray-100 hover:underline" %></li>
                 </ul>
               </div>
             </li>

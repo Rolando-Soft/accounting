@@ -35,8 +35,7 @@ export default class extends Controller {
     // Mutating our own targets below would otherwise retrigger the observer.
     this.observer?.disconnect()
 
-    const typed = parseFloat(this.inputTarget.value)
-    const statementBalance = Number.isFinite(typed) ? typed : 0
+    const statementBalance = this.parseCurrency(this.inputTarget.value)
     const computedBalance = this.parseCurrency(this.computedTarget.textContent)
     const difference = statementBalance - computedBalance
     this.outputTarget.textContent = this.formatCurrency(difference)
@@ -60,6 +59,8 @@ export default class extends Controller {
     this.observer?.observe(this.element, { childList: true, subtree: true, characterData: true })
   }
 
+  // Reads a comma-formatted, $-prefixed, or plain number alike — strips
+  // everything but digits/dot/minus before parsing.
   parseCurrency(text) {
     const value = parseFloat(text.replace(/[^0-9.-]/g, ""))
     return Number.isFinite(value) ? value : 0
@@ -67,5 +68,13 @@ export default class extends Controller {
 
   formatCurrency(amount) {
     return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount)
+  }
+
+  // Re-displays the Statement field as "1,500.00" once the user leaves
+  // it, same as a DB/CR field on the journal transaction form.
+  reformatStatement() {
+    if (this.inputTarget.value.trim() === "") return
+    this.inputTarget.value = this.parseCurrency(this.inputTarget.value)
+      .toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }
 }

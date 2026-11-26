@@ -1,12 +1,23 @@
 class Entry < ApplicationRecord
   belongs_to :journal_transaction
   belongs_to :account
+  belongs_to :project, optional: true
 
   enum :entry_type, { debit: 0, credit: 1 }
   enum :reconciliation_status, { unreconciled: 0, cleared: 1, reconciled: 2 }
 
   validates :amount, numericality: { greater_than: 0 }
   validate :account_must_not_have_children
+
+  # Every account type is a valid project tag (not just income/expense) —
+  # a project's own A/R, A/P, retainers, WIP, and fixed assets all need to
+  # be traceable back to it, not just its revenue and cost lines.
+  scope :for_project, ->(project_id) { where(project_id: project_id) }
+
+  # Income/expense entries only — the lines a Project Profitability (P&L)
+  # report sums, as opposed to the balance-sheet-side lines (A/R, A/P,
+  # retainers, capitalized costs) a Project Ledger report instead surfaces.
+  scope :profit_and_loss, -> { joins(:account).where(accounts: { account_type: %w[income expense] }) }
 
   # Parent accounts exist to group their children for reporting; letting a
   # parent also hold its own entries makes its balance mean two different
@@ -31,7 +42,7 @@ class Entry < ApplicationRecord
     @debit_amount = value
     if value.present?
       self.entry_type = "debit"
-      self.amount = value
+      self.amount = sanitize_amount(value)
     end
   end
 
@@ -39,7 +50,7 @@ class Entry < ApplicationRecord
     @credit_amount = value
     if value.present?
       self.entry_type = "credit"
-      self.amount = value
+      self.amount = sanitize_amount(value)
     end
   end
 
@@ -73,5 +84,15 @@ class Entry < ApplicationRecord
 
   def next_reconciliation_status
     RECONCILIATION_CYCLE.fetch(reconciliation_status, reconciliation_status)
+  end
+
+  private
+
+  # The form displays amounts with comma thousands separators (e.g.
+  # "1,500.00"); strip them before casting to the decimal amount column,
+  # since BigDecimal silently truncates at the first comma instead of
+  # raising ("1,500.00".to_d == 1.0).
+  def sanitize_amount(value)
+    value.is_a?(String) ? value.delete(",") : value
   end
 end

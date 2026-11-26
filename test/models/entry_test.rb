@@ -47,4 +47,43 @@ class EntryTest < ActiveSupport::TestCase
       @entry.entry_type = "invalid"
     end
   end
+
+  test "project is optional" do
+    @entry.project = nil
+    assert @entry.valid?
+  end
+
+  test "for_project scopes to entries tagged with that project, across any account type" do
+    project = Project.create!(name: "Riverside Remodel")
+    income_account = Account.create!(name: "Consulting Revenue", account_type: :income, cash_flow_category: :operating)
+
+    tagged = JournalTransaction.create!(date: Date.today, entries_attributes: [
+      { account: @account, project: project, entry_type: "debit", amount: 75 },
+      { account: income_account, project: project, entry_type: "credit", amount: 75 }
+    ])
+    JournalTransaction.create!(date: Date.today, entries_attributes: [
+      { account: @account, entry_type: "debit", amount: 20 },
+      { account: @other_account, entry_type: "credit", amount: 20 }
+    ])
+
+    assert_equal tagged.entries.to_set, Entry.for_project(project.id).to_set
+  end
+
+  test "profit_and_loss scopes to income/expense entries only" do
+    project = Project.create!(name: "Riverside Remodel")
+    income_account = Account.create!(name: "Consulting Revenue", account_type: :income, cash_flow_category: :operating)
+    expense_account = Account.create!(name: "Materials", account_type: :expense, cash_flow_category: :operating)
+
+    JournalTransaction.create!(date: Date.today, entries_attributes: [
+      { account: @account, project: project, entry_type: "debit", amount: 75 },
+      { account: income_account, project: project, entry_type: "credit", amount: 75 }
+    ])
+    JournalTransaction.create!(date: Date.today, entries_attributes: [
+      { account: expense_account, project: project, entry_type: "debit", amount: 30 },
+      { account: @account, project: project, entry_type: "credit", amount: 30 }
+    ])
+
+    pl_accounts = Entry.for_project(project.id).profit_and_loss.map(&:account).to_set
+    assert_equal [income_account, expense_account].to_set, pl_accounts
+  end
 end

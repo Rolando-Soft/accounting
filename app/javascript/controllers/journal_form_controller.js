@@ -8,7 +8,8 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = [
     "row", "debit", "credit", "lockedDebit", "lockedCredit",
-    "totalDebit", "totalCredit", "submit", "container", "template"
+    "totalDebit", "totalCredit", "submit", "container", "template",
+    "projectHeader", "projectLine"
   ]
 
   connect() {
@@ -28,11 +29,11 @@ export default class extends Controller {
     if (this.hasLockedDebitTarget && this.hasLockedCreditTarget) {
       if (diff > 0) {
         lockedCredit = diff
-        this.lockedCreditTarget.value = diff.toFixed(2)
+        this.lockedCreditTarget.value = this.formatAmount(diff)
         this.lockedDebitTarget.value = ""
       } else if (diff < 0) {
         lockedDebit = -diff
-        this.lockedDebitTarget.value = lockedDebit.toFixed(2)
+        this.lockedDebitTarget.value = this.formatAmount(lockedDebit)
         this.lockedCreditTarget.value = ""
       } else {
         this.lockedDebitTarget.value = ""
@@ -57,7 +58,26 @@ export default class extends Controller {
     const newIndex = new Date().getTime()
     const html = this.templateTarget.innerHTML.replace(/NEW_RECORD/g, newIndex)
     this.containerTarget.insertAdjacentHTML("beforeend", html)
+
+    // A newly added line starts out tagged with whatever project is
+    // currently selected at the header, same as every existing line.
+    if (this.hasProjectHeaderTarget && this.projectHeaderTarget.value) {
+      const newRow = this.rowTargets[this.rowTargets.length - 1]
+      const projectSelect = newRow?.querySelector('[data-journal-form-target~="projectLine"]')
+      if (projectSelect) projectSelect.value = this.projectHeaderTarget.value
+    }
+
     this.recompute()
+  }
+
+  // The header Project selector is a convenience, not a form field of its
+  // own — it just stamps its value onto every line's own project select,
+  // which stays independently editable afterward (a per-line override).
+  applyProjectToAllLines() {
+    const value = this.projectHeaderTarget.value
+    this.projectLineTargets.forEach((select) => {
+      if (this.rowVisible(select)) select.value = value
+    })
   }
 
   remove(event) {
@@ -78,12 +98,24 @@ export default class extends Controller {
     return !row || row.style.display !== "none"
   }
 
+  // Re-displays a DB/CR field as "1,500.00" once the user leaves it,
+  // rather than live-masking every keystroke (which would fight cursor
+  // position). Typing freely while focused, including digits with no
+  // commas yet, is unaffected.
+  reformat(event) {
+    if (event.target.value.trim() === "") return
+    event.target.value = this.formatAmount(this.num(event.target.value))
+  }
+
+  // Comma thousands separators are a display convenience only — strip
+  // them before parsing, since "1,500".parseFloat would otherwise stop at
+  // the comma and silently read as 1.
   num(value) {
-    const parsed = parseFloat(value)
+    const parsed = parseFloat(String(value).replace(/,/g, ""))
     return Number.isFinite(parsed) ? parsed : 0
   }
 
   formatAmount(amount) {
-    return amount.toFixed(2)
+    return amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }
 }

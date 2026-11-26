@@ -1,0 +1,49 @@
+<% content_for :title, "Project Ledger" %>
+<h1 class="text-2xl font-bold mb-6">Project Ledger</h1>
+
+<%= form_with url: project_ledger_path, method: :get, class: "mb-6 flex flex-wrap items-center gap-6" do |form| %>
+  <div>
+    <%= form.label :project_id, "Project", class: "font-bold mr-2" %>
+    <%= form.collection_select :project_id, @projects, :id, :label, { selected: @project&.id }, class: "border rounded px-2 py-1", onchange: "this.form.requestSubmit()" %>
+  </div>
+
+  <div>
+    <%= form.label :view_filter, "View Filter", class: "font-bold mr-2" %>
+    <%= form.select :view_filter,
+          [["This month", "this_month"], ["Last month", "last_month"], ["Last 3 months", "last_3_months"],
+           ["This year", "this_year"], ["Last year", "last_year"], ["All dates", "all_dates"]],
+          { selected: @view_filter }, class: "border rounded px-2 py-1", onchange: "this.form.requestSubmit()" %>
+  </div>
+<% end %>
+
+<% if @project.nil? %>
+  <p class="text-gray-600">No projects yet. <%= link_to "Create one", new_project_path %>.</p>
+<% elsif @sections.empty? %>
+  <p class="text-gray-600">No entries tagged to this project in this date range.</p>
+<% else %>
+  <% @sections.each do |section| %>
+    <table class="table-auto w-full mb-6">
+      <thead>
+        <tr>
+          <th class="border border-blue-300 px-3 py-2 text-left bg-gray-100" colspan="2"><%= section[:label] %></th>
+        </tr>
+        <tr>
+          <th class="border border-blue-300 px-3 py-2 text-left">Account</th>
+          <th class="border border-blue-300 px-3 py-2 text-right">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% section[:rows].each do |row| %>
+          <tr>
+            <td class="border border-blue-300 px-3 py-2"><%= row[:account].name %></td>
+            <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(row[:total]) %></td>
+          </tr>
+        <% end %>
+        <tr class="font-bold bg-gray-50">
+          <td class="border border-blue-300 px-3 py-2">Total <%= section[:label] %></td>
+          <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(section[:total]) %></td>
+        </tr>
+      </tbody>
+    </table>
+  <% end %>
+<% end %>

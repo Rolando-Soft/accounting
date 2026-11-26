@@ -177,7 +177,68 @@ class ReportsController < ApplicationController
       .map { |(_sort_key, label), group| { label: label, value: group.sum(&:signed_amount) } }
   end
 
+  # Revenue, expense, and net profit for a single project's Income/Expense
+  # entries — the same signed_amount convention the Income Statement uses,
+  # just scoped to one project's tagged lines instead of every account.
+  def project_profitability
+    @projects = Project.order(:name)
+    @project = @projects.find_by(id: params[:project_id]) || @projects.first
+    @view_filter = normalize_view_filter(params[:view_filter])
+    from, to = view_filter_range(@view_filter)
+
+    if @project
+      entries = Entry.for_project(@project.id).profit_and_loss.includes(:account, :journal_transaction)
+      scoped = entries.select { |entry| within_range?(entry, from, to) }
+
+      @rows = scoped.group_by(&:account).map { |account, group| { account: account, total: group.sum(&:signed_amount) } }
+        .sort_by { |row| [Account.account_types[row[:account].account_type], row[:account].name] }
+
+      @total_income = @rows.select { |row| row[:account].income? }.sum { |row| row[:total] }
+      @total_expense = @rows.select { |row| row[:account].expense? }.sum { |row| row[:total] }
+      @net_profit = @total_income - @total_expense
+    else
+      @rows = []
+      @total_income = @total_expense = @net_profit = 0
+    end
+  end
+
+  # Every account a project's entries touch, across every account type —
+  # so open A/R, open A/P, client retainers, and capitalized project costs
+  # (whichever Asset/Liability accounts the user tracks those under) all
+  # surface here alongside the project's Income/Expense activity, grouped
+  # the same way the chart of accounts itself is grouped.
+  def project_ledger
+    @projects = Project.order(:name)
+    @project = @projects.find_by(id: params[:project_id]) || @projects.first
+    @view_filter = normalize_view_filter(params[:view_filter])
+    from, to = view_filter_range(@view_filter)
+
+    if @project
+      entries = Entry.for_project(@project.id).includes(:account, :journal_transaction)
+      scoped = entries.select { |entry| within_range?(entry, from, to) }
+      by_type = scoped.group_by { |entry| entry.account.account_type }
+
+      @sections = Account::TYPE_LABELS.keys.filter_map do |type|
+        type_entries = by_type[type]
+        next if type_entries.blank?
+
+        rows = type_entries.group_by(&:account).map do |account, group|
+          { account: account, total: group.sum(&:signed_amount) }
+        end.sort_by { |row| row[:account].name }
+
+        { label: Account::TYPE_LABELS[type], rows: rows, total: rows.sum { |row| row[:total] } }
+      end
+    else
+      @sections = []
+    end
+  end
+
   private
+
+  def within_range?(entry, from, to)
+    date = entry.journal_transaction.date
+    date && (from.nil? || date.between?(from, to))
+  end
 
   # Flows that reconcile Beginning Cash to Ending Cash through each
   # category's net effect, without ever drawing a negative-amount flow (a

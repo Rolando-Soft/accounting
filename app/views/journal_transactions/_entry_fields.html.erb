@@ -1,7 +1,7 @@
 <%
   entry = entry_form.object
-  debit_value = entry.debit_amount || (entry.debit? ? entry.amount : nil)
-  credit_value = entry.credit_amount || (entry.credit? ? entry.amount : nil)
+  debit_value = entry.debit_amount || (entry.debit? ? number_with_precision(entry.amount, precision: 2, delimiter: ",") : nil)
+  credit_value = entry.credit_amount || (entry.credit? ? number_with_precision(entry.amount, precision: 2, delimiter: ",") : nil)
 
   # Parent accounts can't hold entries (see Entry#account_must_not_have_children),
   # except an entry's own already-selected account, kept so editing an older
@@ -11,8 +11,14 @@
     selectable_accounts << Account.find_by(id: entry.account_id)
     selectable_accounts.compact!
   end
+
+  selectable_projects = Project.order(:name).to_a
+  if entry.project_id && selectable_projects.none? { |p| p.id == entry.project_id }
+    selectable_projects << Project.find_by(id: entry.project_id)
+    selectable_projects.compact!
+  end
 %>
-<div class="grid grid-cols-[2fr_2fr_1fr_1fr_auto_auto] gap-2 items-center mb-2" data-journal-form-target="row">
+<div class="grid grid-cols-[2fr_2fr_1.5fr_1fr_1fr_auto_auto] gap-2 items-center mb-2" data-journal-form-target="row">
   <% if locked %>
     <%= entry_form.hidden_field :account_id %>
     <div class="border rounded px-3 py-2 bg-gray-100 text-gray-700"><%= entry.account&.name || "This account" %></div>
@@ -29,13 +35,16 @@
 
   <%= entry_form.text_field :description, class: "border rounded px-3 py-2 w-full" %>
 
+  <%= entry_form.collection_select :project_id, selectable_projects, :id, :label, { include_blank: true },
+        class: "border rounded px-3 py-2 w-full", data: { "journal-form-target": "projectLine" } %>
+
   <%= entry_form.text_field :debit_amount, value: debit_value, readonly: locked,
         class: "border rounded px-3 py-2 w-full #{"bg-gray-100 text-gray-700" if locked}",
-        data: { "journal-form-target": locked ? "lockedDebit" : "debit", action: locked ? nil : "input->journal-form#recompute" } %>
+        data: { "journal-form-target": locked ? "lockedDebit" : "debit", action: locked ? nil : "input->journal-form#recompute blur->journal-form#reformat" } %>
 
   <%= entry_form.text_field :credit_amount, value: credit_value, readonly: locked,
         class: "border rounded px-3 py-2 w-full #{"bg-gray-100 text-gray-700" if locked}",
-        data: { "journal-form-target": locked ? "lockedCredit" : "credit", action: locked ? nil : "input->journal-form#recompute" } %>
+        data: { "journal-form-target": locked ? "lockedCredit" : "credit", action: locked ? nil : "input->journal-form#recompute blur->journal-form#reformat" } %>
 
   <label class="flex items-center justify-center" title="Mark reconciled">
     <%= entry_form.check_box :mark_reconciled, checked: entry.reconciled?, class: "w-4 h-4" %>
