@@ -171,8 +171,8 @@ The **Reports** page is a directory of every report, grouped by category:
 
 **Income & Spending**
 - **Income Statement** — Income and Expense totals and Net Income for a chosen month, with 1–3 month comparison columns, child-account toggle, and zero-balance hiding, same as the Balance Sheet.
-- **Expense Treemap** — a visual map of leaf expense accounts, sized by total activity in your chosen date range, for spotting at a glance where money is concentrated.
-- **Income/Expense Comparison** — a bar chart of one income or expense account type's totals over time, bucketed by year, quarter, month, week, or day, for spotting trends.
+- **Expense Treemap** — a visual map of leaf expense accounts, sized by total activity in your chosen date range, for spotting at a glance where money is concentrated. A **Through** date lets you step back to any month instead of only "this month" or "last month" relative to today.
+- **Income/Expense Comparison** — a bar chart of one income or expense account type's totals over time, bucketed by year, quarter, month, week, or day, for spotting trends. Also has a **Through** date, so the View Filter's options (This month, Last 3 months, etc.) anchor to that date instead of always today.
 
 **Cash Flow**
 - **Cash Flow Statement** — your net change in cash for a chosen month (with 1–3 month comparisons), broken into Operating, Investing, and Financing activity based on each account's **Cash flow category** (set when you created the account — see §2.3). "Cash" here means your Asset accounts categorized **Cash**; a non-cash asset (an investment, say) shows its own effect under its own category instead.

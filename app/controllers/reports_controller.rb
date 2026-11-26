@@ -108,8 +108,9 @@ class ReportsController < ApplicationController
   # activity within the view filter's date range — a shape for spotting
   # where the money is concentrated that a table doesn't give you.
   def expense_treemap
+    @end_date = parse_date(params[:end_date]) || Date.current
     @view_filter = normalize_view_filter(params[:view_filter])
-    from, to = view_filter_range(@view_filter)
+    from, to = view_filter_range(@view_filter, through: @end_date)
 
     accounts = Account.where(account_type: "expense").postable.includes(entries: :journal_transaction)
     @tiles = accounts.filter_map do |account|
@@ -159,9 +160,10 @@ class ReportsController < ApplicationController
   # totals, instead of a snapshot of where they're concentrated.
   def income_expense_comparison
     @account_type = %w[income expense].include?(params[:account_type]) ? params[:account_type] : "expense"
+    @end_date = parse_date(params[:end_date]) || Date.current
     @view_filter = normalize_view_filter(params[:view_filter])
     @period = PERIODS.include?(params[:period]) ? params[:period] : "monthly"
-    from, to = view_filter_range(@view_filter)
+    from, to = view_filter_range(@view_filter, through: @end_date)
 
     @accounts = Account.where(account_type: @account_type).postable.ordered_by_type
     @account = @accounts.find_by(id: params[:account_id])

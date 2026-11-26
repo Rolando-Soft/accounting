@@ -26,6 +26,11 @@
   </div>
 
   <div>
+    <%= form.label :end_date, "Through", class: "font-bold mr-2" %>
+    <%= form.date_field :end_date, value: @end_date, class: "border rounded px-3 py-2", onchange: "this.form.requestSubmit()" %>
+  </div>
+
+  <div>
     <%= form.label :view_filter, "View Filter", class: "font-bold mr-2" %>
     <%= form.select :view_filter,
           [["This month", "this_month"], ["Last month", "last_month"], ["Last 3 months", "last_3_months"],

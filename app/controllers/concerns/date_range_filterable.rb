@@ -13,26 +13,29 @@ module DateRangeFilterable
   end
 
   # [from, to] for the filter, or [nil, nil] for "all_dates" (unbounded).
-  def view_filter_range(filter)
-    today = Date.current
+  # Every relative option ("this month", "last 3 months", ...) is computed
+  # relative to `through` instead of always today, so a report can let the
+  # user step back to an arbitrary month rather than being stuck with
+  # whatever "this month" means right now.
+  def view_filter_range(filter, through: Date.current)
     case filter
     when "last_month"
-      [today.prev_month.beginning_of_month, today.prev_month.end_of_month]
+      [through.prev_month.beginning_of_month, through.prev_month.end_of_month]
     when "last_3_months"
-      [3.months.ago.to_date, today]
+      [(through - 3.months).to_date, through]
     when "this_year"
-      [today.beginning_of_year, today.end_of_year]
+      [through.beginning_of_year, through.end_of_year]
     when "last_year"
-      [today.prev_year.beginning_of_year, today.prev_year.end_of_year]
+      [through.prev_year.beginning_of_year, through.prev_year.end_of_year]
     when "all_dates"
       [nil, nil]
     else # "this_month"
-      [today.beginning_of_month, today.end_of_month]
+      [through.beginning_of_month, through.end_of_month]
     end
   end
 
-  def within_date_range?(date, filter)
-    from, to = view_filter_range(filter)
+  def within_date_range?(date, filter, through: Date.current)
+    from, to = view_filter_range(filter, through: through)
     from.nil? || date.between?(from, to)
   end
 end
