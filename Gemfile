@@ -25,6 +25,11 @@ gem "bcrypt", "~> 3.1.7"
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 
+# Rails (via railties) depends on tsort, which stops shipping as a Ruby
+# default gem starting in 4.1 — bundle it explicitly so upgrading past
+# that doesn't break.
+gem "tsort"
+
 # Use the database-backed adapters for Rails.cache, Active Job, and Action Cable
 gem "solid_cache"
 gem "solid_queue"
