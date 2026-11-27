@@ -16,21 +16,14 @@ class ReportsController < ApplicationController
     @columns = @dates.map { |date| balance_sheet_column(date) }
   end
 
-  # One column per calendar month, most recent first — @periods controls
-  # how many (1, the plain single-month view, up to 3), or "year" for a
-  # single Jan 1-through-@end_date column instead (year to date, same
-  # "still-in-progress period reports to date" convention as a single
-  # month). The most recent monthly column runs from the start of
-  # @end_date's month through @end_date itself; earlier columns are each a
-  # full prior calendar month.
+  # One column per calendar month in the selected date range (see
+  # #resolve_date_range), plus a Total column summing across them.
   def income_statement
-    @end_date = parse_date(params[:end_date]) || Date.current
-    @periods = %w[1 2 3 year].include?(params[:periods]) ? params[:periods] : "1"
     @show_children = params[:show_children] != "0"
     @hide_zero_balances = params[:hide_zero_balances] == "1"
-    @ranges = period_ranges_with_labels(@end_date, @periods)
+    load_date_range
     @trees = account_trees(%w[income expense])
-    @columns = @ranges.map { |from, to, label| income_statement_column(from, to).merge(label: label) }
+    @columns = @date_range[:columns].map { |from, to, label| income_statement_column(from, to).merge(label: label) }
   end
 
   # Direct method: cash accounts are the asset accounts, and every other
@@ -38,17 +31,29 @@ class ReportsController < ApplicationController
   # balanced transaction's debits and credits always net to zero, the
   # total across non-cash entries (negated) always equals cash's own
   # actual change — true regardless of how a transaction is split, with
-  # no need to pair up entries. One column per calendar month, most
-  # recent first, same as the Income Statement.
+  # no need to pair up entries. One column per calendar month in the
+  # selected date range, same as the Income Statement.
   def cash_flow_statement
-    @end_date = parse_date(params[:end_date]) || Date.current
-    @periods = (params[:periods].presence || "1").to_i.clamp(1, 3)
     @hide_zero_balances = params[:hide_zero_balances] == "1"
-    @ranges = period_ranges(@end_date, @periods)
-    @columns = @ranges.map { |from, to| cash_flow_column(from, to) }
+    load_date_range
+    @columns = @date_range[:columns].map { |from, to, label| cash_flow_column(from, to).merge(label: label) }
   end
 
   CASH_FLOW_CATEGORY_LABELS = { "operating" => "Operating", "investing" => "Investing", "financing" => "Financing" }.freeze
+
+  # The shared date-range picker (Income Statement, Cash Flow Statement,
+  # Account Ledger, Project Profitability, Project Ledger) — order here is
+  # the order presets appear in its dropdown.
+  RANGE_PRESET_LABELS = {
+    "this_month" => "This month",
+    "last_3_months" => "Last 3 Months",
+    "last_6_months" => "Last 6 Months",
+    "last_12_months" => "Last 12 Months",
+    "year_to_date" => "Year to Date",
+    "last_year" => "Last Year",
+    "all_dates" => "All Dates",
+    "custom" => "Custom"
+  }.freeze
 
   # The Cash Flow Statement's own numbers (cash_flow_column), reshaped into
   # a Sankey: Beginning Cash funds whichever categories drew cash down,
@@ -84,18 +89,19 @@ class ReportsController < ApplicationController
   def account_ledger
     @accounts = Account.ordered_by_type
     @account = @accounts.find_by(id: params[:account_id]) || @accounts.first
-    @view_filter = normalize_view_filter(params[:view_filter])
     @projects = Project.order(:name)
     @project = @projects.find_by(id: params[:project_id])
+    load_date_range
 
     if @account
-      from, to = view_filter_range(@view_filter)
+      from = @date_range[:columns].first[0]
+      to = @date_range[:columns].last[1]
       all_entries = @account.entries.includes(journal_transaction: { entries: :account }).to_a
         .select { |entry| @project.nil? || entry.project_id == @project.id }
         .sort_by { |entry| [ entry.journal_transaction.date, entry.id ] }
 
-      @beginning_balance = from ? all_entries.select { |e| e.journal_transaction.date < from }.sum(&:signed_amount) : 0
-      entries_in_range = all_entries.select { |e| from.nil? || e.journal_transaction.date.between?(from, to) }
+      @beginning_balance = all_entries.select { |e| e.journal_transaction.date < from }.sum(&:signed_amount)
+      entries_in_range = all_entries.select { |e| e.journal_transaction.date.between?(from, to) }
 
       running_balance = @beginning_balance
       @rows = entries_in_range.map do |entry|
@@ -186,20 +192,15 @@ class ReportsController < ApplicationController
 
   # Revenue, expense, and net profit for a single project's Income/Expense
   # entries — the same signed_amount convention the Income Statement uses,
-  # just scoped to one project's tagged lines instead of every account. A
-  # "Through" date plus 1-3 comparison periods, same as the Income
-  # Statement — not an "as of" snapshot date like the Balance Sheet, since
-  # Income/Expense accounts are period totals, not point-in-time balances.
+  # just scoped to one project's tagged lines instead of every account.
   def project_profitability
     @projects = Project.order(:name)
     @project = @projects.find_by(id: params[:project_id]) || @projects.first
-    @end_date = parse_date(params[:end_date]) || Date.current
-    @periods = %w[1 2 3 year].include?(params[:periods]) ? params[:periods] : "1"
-    @ranges = period_ranges_with_labels(@end_date, @periods)
+    load_date_range
 
     if @project
       all_entries = Entry.for_project(@project.id).profit_and_loss.includes(:account, :journal_transaction).to_a
-      by_column = @ranges.map { |from, to, _label| all_entries.select { |entry| within_range?(entry, from, to) }.group_by(&:account) }
+      by_column = @date_range[:columns].map { |from, to, _label| all_entries.select { |entry| within_range?(entry, from, to) }.group_by(&:account) }
 
       accounts = by_column.flat_map(&:keys).uniq
         .sort_by { |account| [ Account.account_types[account.account_type], account.name ] }
@@ -228,17 +229,18 @@ class ReportsController < ApplicationController
   def project_ledger
     @projects = Project.order(:name)
     @project = @projects.find_by(id: params[:project_id]) || @projects.first
-    @view_filter = normalize_view_filter(params[:view_filter])
-    from, to = view_filter_range(@view_filter)
+    load_date_range
 
     if @project
+      from = @date_range[:columns].first[0]
+      to = @date_range[:columns].last[1]
       all_entries = Entry.for_project(@project.id).includes(:account, journal_transaction: { entries: :account }).to_a
       by_account = all_entries.group_by(&:account)
 
       account_ledgers = by_account.filter_map do |account, account_entries|
         sorted = account_entries.sort_by { |entry| [ entry.journal_transaction.date, entry.id ] }
-        beginning_balance = from ? sorted.select { |e| e.journal_transaction.date < from }.sum(&:signed_amount) : 0
-        entries_in_range = sorted.select { |e| from.nil? || e.journal_transaction.date.between?(from, to) }
+        beginning_balance = sorted.select { |e| e.journal_transaction.date < from }.sum(&:signed_amount)
+        entries_in_range = sorted.select { |e| e.journal_transaction.date.between?(from, to) }
         next if entries_in_range.empty? && beginning_balance.zero?
 
         running_balance = beginning_balance
@@ -355,15 +357,90 @@ class ReportsController < ApplicationController
     end
   end
 
-  # [[from, to, label], ...] — like period_ranges, but each range carries
-  # its own column header label, and "year" gives a single Jan 1-through-
-  # end_date column (year to date) instead of calendar months.
-  def period_ranges_with_labels(end_date, compare)
-    if compare == "year"
-      [ [ end_date.beginning_of_year, end_date, end_date.year.to_s ] ]
-    else
-      period_ranges(end_date, compare.to_i).map { |from, to| [ from, to, to.strftime("%b %Y") ] }
+  # Reads the shared date-range picker's params (see
+  # app/views/reports/_date_range_picker.html.erb) into @date_range, plus
+  # @shift/@custom_start/@custom_end for re-rendering the picker's own
+  # fields at their current values.
+  def load_date_range
+    @shift = params[:shift].to_i
+    @custom_start = params[:custom_start]
+    @custom_end = params[:custom_end]
+    @date_range = resolve_date_range(range: params[:range], shift: @shift, custom_start: @custom_start, custom_end: @custom_end)
+  end
+
+  # One column per calendar month for whichever preset is selected:
+  #   this_month        → the anchor month alone
+  #   last_3/6/12_months → that many months ending at the anchor
+  #   year_to_date      → Jan through the anchor month, of the anchor's year
+  #   last_year         → Jan-Dec of the year before the anchor's year
+  #   all_dates         → every month with activity, earliest through the anchor
+  #   custom            → every month between custom_start and custom_end
+  # `shift` moves the anchor N months from the real current month — so
+  # the ‹/› arrows just resubmit with a different shift, and every preset
+  # (except "custom", an explicit closed window) recomputes relative to
+  # wherever that lands. Only a column that is the *actual* current
+  # real-world month is ever partial (ends at today instead of that
+  # month's last day) — so navigating away from "now", by shift or by
+  # picking "last_year", always shows complete months.
+  def resolve_date_range(range:, shift: 0, custom_start: nil, custom_end: nil)
+    range = RANGE_PRESET_LABELS.key?(range) ? range : "this_month"
+    anchor = Date.current.beginning_of_month + shift.to_i.months
+
+    first_month, last_month =
+      case range
+      when "last_3_months" then [ anchor - 2.months, anchor ]
+      when "last_6_months" then [ anchor - 5.months, anchor ]
+      when "last_12_months" then [ anchor - 11.months, anchor ]
+      when "year_to_date" then [ anchor.beginning_of_year, anchor ]
+      when "last_year"
+        year = anchor.year - 1
+        [ Date.new(year, 1, 1), Date.new(year, 12, 1) ]
+      when "all_dates"
+        [ earliest_entry_month || anchor, anchor ]
+      when "custom"
+        cs = parse_month_param(custom_start) || anchor
+        ce = parse_month_param(custom_end) || anchor
+        [ cs, ce ].sort
+      else # "this_month"
+        [ anchor, anchor ]
+      end
+
+    today = Date.current
+    columns = months_in_range(first_month, last_month).map do |month_start|
+      to = (range != "custom" && month_start == today.beginning_of_month) ? today : month_start.end_of_month
+      [ month_start, to, month_start.strftime("%b %Y") ]
     end
+
+    label = columns.size == 1 ? columns.first[2] : "#{columns.first[2]} – #{columns.last[2]}"
+
+    { range: range, columns: columns, label: label, warn_wide: columns.size > 18 }
+  end
+
+  def months_in_range(from_month, to_month)
+    months = []
+    cursor = from_month.beginning_of_month
+    while cursor <= to_month
+      months << cursor
+      cursor = cursor.next_month
+    end
+    months
+  end
+
+  # The earliest calendar month any transaction exists in, for "All
+  # Dates" — nil if the workspace has no transactions at all yet.
+  def earliest_entry_month
+    date = JournalTransaction.joins(:entries).minimum(:date)
+    date&.beginning_of_month
+  end
+
+  # "YYYY-MM" (what an <input type="month"> submits) to a Date, or nil.
+  def parse_month_param(value)
+    return nil if value.blank?
+
+    year, month = value.split("-").map(&:to_i)
+    Date.new(year, month, 1)
+  rescue ArgumentError, TypeError
+    nil
   end
 
   def income_statement_column(from, to)

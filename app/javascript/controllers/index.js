@@ -13,6 +13,9 @@ application.register("account-type-fields", AccountTypeFieldsController)
 import BarChartController from "./bar_chart_controller"
 application.register("bar-chart", BarChartController)
 
+import DateRangePickerController from "./date_range_picker_controller"
+application.register("date-range-picker", DateRangePickerController)
+
 import DifferenceController from "./difference_controller"
 application.register("difference", DifferenceController)
 

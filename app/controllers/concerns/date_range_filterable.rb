@@ -1,6 +1,9 @@
 # Shared "View Filter" dropdown (This month/Last month/.../All dates) used
-# by both the register and the account ledger report, so the two stay in
-# sync rather than drifting into subtly different date math.
+# by the register and the Journal Transactions list. Account Ledger,
+# Project Ledger, Income Statement, Cash Flow Statement, and Project
+# Profitability instead use ReportsController's own shared date-range
+# picker (see #resolve_date_range) — a different, richer control with
+# monthly columns and a Custom range, not a drop-in replacement for this.
 module DateRangeFilterable
   extend ActiveSupport::Concern
 

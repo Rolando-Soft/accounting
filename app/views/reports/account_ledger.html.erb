@@ -15,11 +15,8 @@
   </div>
 
   <div>
-    <%= form.label :view_filter, "View Filter", class: "block text-gray-700 font-bold mb-1" %>
-    <%= form.select :view_filter,
-          [["This month", "this_month"], ["Last month", "last_month"], ["Last 3 months", "last_3_months"],
-           ["This year", "this_year"], ["Last year", "last_year"], ["All dates", "all_dates"]],
-          { selected: @view_filter }, class: "border rounded px-3 py-2 h-[42px]", onchange: "this.form.requestSubmit()" %>
+    <div class="block font-bold mb-1 invisible" aria-hidden="true">Range</div>
+    <%= render "reports/date_range_picker", form: form, date_range: @date_range, shift: @shift, custom_start: @custom_start, custom_end: @custom_end %>
   </div>
 
   <div>

@@ -1,17 +1,8 @@
 <% content_for :title, "Income Statement" %>
 <h1 class="text-2xl font-bold mb-6">Income Statement</h1>
 
-<%= form_with url: income_statement_path, method: :get, class: "mb-6 flex items-center gap-4" do |form| %>
-  <div class="flex items-center gap-2">
-    <%= form.label :end_date, "Through", class: "font-bold" %>
-    <%= form.date_field :end_date, value: @end_date, class: "border rounded px-3 py-2", onchange: "this.form.requestSubmit()" %>
-  </div>
-  <div class="flex items-center gap-2">
-    <%= form.label :periods, "Compare", class: "font-bold" %>
-    <%= form.select :periods,
-          [["Single month", "1"], ["Last 2 months", "2"], ["Last 3 months", "3"], ["This year", "year"]],
-          { selected: @periods }, class: "border rounded px-2 py-1", onchange: "this.form.requestSubmit()" %>
-  </div>
+<%= form_with url: income_statement_path, method: :get, class: "mb-6 flex flex-wrap items-center gap-4" do |form| %>
+  <%= render "reports/date_range_picker", form: form, date_range: @date_range, shift: @shift, custom_start: @custom_start, custom_end: @custom_end %>
   <label class="flex items-center gap-2 font-bold">
     <%= form.check_box :show_children, { checked: @show_children, onchange: "this.form.requestSubmit()" }, "1", "0" %>
     Show child accounts
@@ -27,17 +18,15 @@
     <tr>
       <th class="border border-blue-300 px-3 py-2 text-left">Account</th>
       <% @columns.each do |column| %>
-        <th class="border border-blue-300 px-3 py-2 text-right"><%= column[:label] %></th>
+        <th class="border border-blue-300 px-3 py-2 text-right whitespace-nowrap"><%= column[:label] %></th>
       <% end %>
-      <% if @columns.size > 1 %>
-        <th class="border border-blue-300 px-3 py-2 text-right">Total</th>
-      <% end %>
+      <th class="border border-blue-300 px-3 py-2 text-right whitespace-nowrap">Total</th>
     </tr>
   </thead>
   <% [["income", "Income", :total_income], ["expense", "Expense", :total_expense]].each do |type, label, total_key| %>
     <tbody>
       <tr class="bg-gray-100">
-        <th colspan="<%= @columns.size + (@columns.size > 1 ? 2 : 1) %>" class="border border-blue-300 px-3 py-2 text-left"><%= label %></th>
+        <th colspan="<%= @columns.size + 2 %>" class="border border-blue-300 px-3 py-2 text-left"><%= label %></th>
       </tr>
       <% @trees[type].each do |row| %>
         <% next if row[:depth].positive? && !@show_children %>
@@ -50,9 +39,7 @@
           <% @columns.each do |column| %>
             <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(column[:rollups][type][account.id]) %></td>
           <% end %>
-          <% if @columns.size > 1 %>
-            <td class="border border-blue-300 px-3 py-2 text-right font-bold"><%= number_to_currency(@columns.sum { |column| column[:rollups][type][account.id] }) %></td>
-          <% end %>
+          <td class="border border-blue-300 px-3 py-2 text-right font-bold"><%= number_to_currency(@columns.sum { |column| column[:rollups][type][account.id] }) %></td>
         </tr>
       <% end %>
       <tr class="font-bold">
@@ -60,9 +47,7 @@
         <% @columns.each do |column| %>
           <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(column[total_key]) %></td>
         <% end %>
-        <% if @columns.size > 1 %>
-          <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(@columns.sum { |column| column[total_key] }) %></td>
-        <% end %>
+        <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(@columns.sum { |column| column[total_key] }) %></td>
       </tr>
     </tbody>
   <% end %>
@@ -74,12 +59,10 @@
           <%= number_to_currency(column[:net_income]) %>
         </td>
       <% end %>
-      <% if @columns.size > 1 %>
-        <% total_net_income = @columns.sum { |column| column[:net_income] } %>
-        <td class="border border-blue-300 px-3 py-2 text-right <%= total_net_income.negative? ? "text-red-600" : "text-green-600" %>">
-          <%= number_to_currency(total_net_income) %>
-        </td>
-      <% end %>
+      <% total_net_income = @columns.sum { |column| column[:net_income] } %>
+      <td class="border border-blue-300 px-3 py-2 text-right <%= total_net_income.negative? ? "text-red-600" : "text-green-600" %>">
+        <%= number_to_currency(total_net_income) %>
+      </td>
     </tr>
   </tbody>
 </table>

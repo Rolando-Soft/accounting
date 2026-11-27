@@ -1,0 +1,51 @@
+<div class="relative inline-block" data-controller="date-range-picker" data-action="click@document->date-range-picker#closeIfOutside">
+  <%= form.hidden_field :range, value: date_range[:range], data: { "date-range-picker-target": "rangeInput" } %>
+  <%= form.hidden_field :shift, value: shift, data: { "date-range-picker-target": "shiftInput" } %>
+
+  <div class="flex items-center gap-1">
+    <button type="button" data-action="click->date-range-picker#shiftPrev" <%= "disabled" if date_range[:range] == "all_dates" %>
+            class="h-[42px] px-2 border rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white">&lsaquo;</button>
+    <button type="button" data-action="click->date-range-picker#toggle"
+            class="h-[42px] font-bold px-3 border rounded hover:bg-gray-100 whitespace-nowrap">
+      <%= date_range[:label] %> <span class="text-gray-400">&#9662;</span>
+    </button>
+    <button type="button" data-action="click->date-range-picker#shiftNext" <%= "disabled" if date_range[:range] == "all_dates" %>
+            class="h-[42px] px-2 border rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white">&rsaquo;</button>
+  </div>
+
+  <div data-date-range-picker-target="menu" class="hidden absolute z-20 mt-1 w-56 bg-white border rounded shadow-lg">
+    <ul class="py-1">
+      <% ReportsController::RANGE_PRESET_LABELS.each do |key, label| %>
+        <li>
+          <button type="button" data-action="click->date-range-picker#selectPreset" data-date-range-picker-preset-param="<%= key %>"
+                  class="w-full text-left px-4 py-2 hover:bg-gray-100 <%= "font-bold bg-gray-50" if date_range[:range] == key %>">
+            <%= label %>
+          </button>
+        </li>
+      <% end %>
+    </ul>
+
+    <div data-date-range-picker-target="customFields" class="<%= "hidden" unless date_range[:range] == "custom" %> border-t border-gray-200 px-4 py-3 space-y-2">
+      <div>
+        <label class="block text-sm font-bold mb-1">Start Date</label>
+        <%= form.month_field :custom_start, value: custom_start, class: "border rounded px-2 py-1 w-full",
+              data: { "date-range-picker-target": "customStart" } %>
+      </div>
+      <div>
+        <label class="block text-sm font-bold mb-1">End Date</label>
+        <%= form.month_field :custom_end, value: custom_end, class: "border rounded px-2 py-1 w-full",
+              data: { "date-range-picker-target": "customEnd" } %>
+      </div>
+      <div class="flex gap-2 pt-1">
+        <button type="button" data-action="click->date-range-picker#cancelCustom" class="px-3 py-1 border rounded">Cancel</button>
+        <button type="button" data-action="click->date-range-picker#applyCustom" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Apply</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<% if date_range[:warn_wide] %>
+  <p class="text-amber-700 text-sm basis-full mt-1">
+    This range spans <%= date_range[:columns].size %> months — showing all of them. Consider narrowing the range if the table feels too wide.
+  </p>
+<% end %>

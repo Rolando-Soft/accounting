@@ -1,19 +1,12 @@
 <% content_for :title, "Project Ledger" %>
 <h1 class="text-2xl font-bold mb-6">Project Ledger</h1>
 
-<%= form_with url: project_ledger_path, method: :get, class: "mb-6 flex flex-wrap items-center gap-6" do |form| %>
+<%= form_with url: project_ledger_path, method: :get, class: "mb-6 flex flex-wrap items-center gap-4" do |form| %>
   <div>
     <%= form.label :project_id, "Project", class: "font-bold mr-2" %>
     <%= form.collection_select :project_id, @projects, :id, :label, { selected: @project&.id }, class: "border rounded px-2 py-1", onchange: "this.form.requestSubmit()" %>
   </div>
-
-  <div>
-    <%= form.label :view_filter, "View Filter", class: "font-bold mr-2" %>
-    <%= form.select :view_filter,
-          [["This month", "this_month"], ["Last month", "last_month"], ["Last 3 months", "last_3_months"],
-           ["This year", "this_year"], ["Last year", "last_year"], ["All dates", "all_dates"]],
-          { selected: @view_filter }, class: "border rounded px-2 py-1", onchange: "this.form.requestSubmit()" %>
-  </div>
+  <%= render "reports/date_range_picker", form: form, date_range: @date_range, shift: @shift, custom_start: @custom_start, custom_end: @custom_end %>
 <% end %>
 
 <% if @project.nil? %>
