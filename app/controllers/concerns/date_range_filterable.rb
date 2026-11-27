@@ -20,17 +20,17 @@ module DateRangeFilterable
   def view_filter_range(filter, through: Date.current)
     case filter
     when "last_month"
-      [through.prev_month.beginning_of_month, through.prev_month.end_of_month]
+      [ through.prev_month.beginning_of_month, through.prev_month.end_of_month ]
     when "last_3_months"
-      [(through - 3.months).to_date, through]
+      [ (through - 3.months).to_date, through ]
     when "this_year"
-      [through.beginning_of_year, through.end_of_year]
+      [ through.beginning_of_year, through.end_of_year ]
     when "last_year"
-      [through.prev_year.beginning_of_year, through.prev_year.end_of_year]
+      [ through.prev_year.beginning_of_year, through.prev_year.end_of_year ]
     when "all_dates"
-      [nil, nil]
+      [ nil, nil ]
     else # "this_month"
-      [through.beginning_of_month, through.end_of_month]
+      [ through.beginning_of_month, through.end_of_month ]
     end
   end
 

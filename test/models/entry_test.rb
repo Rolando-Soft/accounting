@@ -84,6 +84,6 @@ class EntryTest < ActiveSupport::TestCase
     ])
 
     pl_accounts = Entry.for_project(project.id).profit_and_loss.map(&:account).to_set
-    assert_equal [income_account, expense_account].to_set, pl_accounts
+    assert_equal [ income_account, expense_account ].to_set, pl_accounts
   end
 end

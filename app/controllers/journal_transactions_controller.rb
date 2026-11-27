@@ -6,7 +6,7 @@ class JournalTransactionsController < ApplicationController
     @view_filter = normalize_view_filter(params[:view_filter])
     @journal_transactions = JournalTransaction.includes(entries: :account).search_by_payee(params[:q])
       .select { |jt| within_date_range?(jt.date, @view_filter) }
-      .sort_by { |jt| [jt.date, jt.id] }.reverse
+      .sort_by { |jt| [ jt.date, jt.id ] }.reverse
   end
 
   def new
@@ -26,7 +26,7 @@ class JournalTransactionsController < ApplicationController
     @return_to = params[:return_to].presence
     @journal_transaction = JournalTransaction.new(journal_transaction_params)
     if @journal_transaction.save
-      redirect_to @return_to.presence || journal_transactions_path, notice: 'Journal transaction was successfully created.'
+      redirect_to @return_to.presence || journal_transactions_path, notice: "Journal transaction was successfully created."
     else
       render :new, status: :unprocessable_entity
     end
@@ -47,7 +47,7 @@ class JournalTransactionsController < ApplicationController
     @register_account_id = params[:register_account_id].presence&.to_i
     @return_to = params[:return_to].presence
     if @journal_transaction.update(journal_transaction_params)
-      redirect_to @return_to.presence || journal_transactions_path, notice: 'Journal transaction was successfully updated.'
+      redirect_to @return_to.presence || journal_transactions_path, notice: "Journal transaction was successfully updated."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -68,6 +68,6 @@ class JournalTransactionsController < ApplicationController
   private
   def journal_transaction_params
     params.require(:journal_transaction).permit(:date, :description, :payee, :allow_reconciled_changes,
-      entries_attributes: [:id, :account_id, :project_id, :debit_amount, :credit_amount, :mark_reconciled, :description, :_destroy])
+      entries_attributes: [ :id, :account_id, :project_id, :debit_amount, :credit_amount, :mark_reconciled, :description, :_destroy ])
   end
 end

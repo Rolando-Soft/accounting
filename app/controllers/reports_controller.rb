@@ -87,7 +87,7 @@ class ReportsController < ApplicationController
     if @account
       from, to = view_filter_range(@view_filter)
       all_entries = @account.entries.includes(journal_transaction: { entries: :account }).to_a
-        .sort_by { |entry| [entry.journal_transaction.date, entry.id] }
+        .sort_by { |entry| [ entry.journal_transaction.date, entry.id ] }
 
       @beginning_balance = from ? all_entries.select { |e| e.journal_transaction.date < from }.sum(&:signed_amount) : 0
       entries_in_range = all_entries.select { |e| from.nil? || e.journal_transaction.date.between?(from, to) }
@@ -168,7 +168,7 @@ class ReportsController < ApplicationController
     @accounts = Account.where(account_type: @account_type).postable.ordered_by_type
     @account = @accounts.find_by(id: params[:account_id])
 
-    scoped_accounts = @account ? [@account] : @accounts.includes(entries: :journal_transaction)
+    scoped_accounts = @account ? [ @account ] : @accounts.includes(entries: :journal_transaction)
     entries = scoped_accounts.flat_map(&:entries).select do |entry|
       date = entry.journal_transaction.date
       date && (from.nil? || date.between?(from, to))
@@ -193,7 +193,7 @@ class ReportsController < ApplicationController
       scoped = entries.select { |entry| within_range?(entry, from, to) }
 
       @rows = scoped.group_by(&:account).map { |account, group| { account: account, total: group.sum(&:signed_amount) } }
-        .sort_by { |row| [Account.account_types[row[:account].account_type], row[:account].name] }
+        .sort_by { |row| [ Account.account_types[row[:account].account_type], row[:account].name ] }
 
       @total_income = @rows.select { |row| row[:account].income? }.sum { |row| row[:total] }
       @total_expense = @rows.select { |row| row[:account].expense? }.sum { |row| row[:total] }
@@ -256,24 +256,24 @@ class ReportsController < ApplicationController
   # statement's actual ending balance.
   def cash_reconciliation_flows(column)
     sources = []
-    sources << ["Beginning Cash", column[:beginning_cash]] if column[:beginning_cash].positive?
+    sources << [ "Beginning Cash", column[:beginning_cash] ] if column[:beginning_cash].positive?
     CASH_FLOW_CATEGORY_LABELS.each do |category, label|
       net = column[:category_totals][category]
-      sources << [label, net] if net.positive?
+      sources << [ label, net ] if net.positive?
     end
 
     needs = CASH_FLOW_CATEGORY_LABELS.filter_map do |category, label|
       net = column[:category_totals][category]
-      [label, -net] if net.negative?
+      [ label, -net ] if net.negative?
     end
-    needs << [nil, -column[:beginning_cash]] if column[:beginning_cash].negative?
+    needs << [ nil, -column[:beginning_cash] ] if column[:beginning_cash].negative?
 
     flows = []
     needs.each do |need_label, amount|
       remaining = amount
       sources.each do |source|
         next if remaining <= 0 || source[1] <= 0
-        drawn = [source[1], remaining].min
+        drawn = [ source[1], remaining ].min
         flows << { from: source[0], to: need_label, flow: drawn } if need_label
         source[1] -= drawn
         remaining -= drawn
@@ -290,17 +290,17 @@ class ReportsController < ApplicationController
   # the same period collapse into the same bar and bars stay chronological.
   def period_bucket(date, period)
     case period
-    when "yearly" then [date.year, date.year.to_s]
+    when "yearly" then [ date.year, date.year.to_s ]
     when "quarterly"
       quarter = (date.month - 1) / 3 + 1
-      [[date.year, quarter], "Q#{quarter} #{date.year}"]
+      [ [ date.year, quarter ], "Q#{quarter} #{date.year}" ]
     when "weekly"
       start = date.beginning_of_week
-      [start, start.strftime("%b %-d, %Y")]
+      [ start, start.strftime("%b %-d, %Y") ]
     when "daily"
-      [date, date.strftime("%b %-d, %Y")]
+      [ date, date.strftime("%b %-d, %Y") ]
     else
-      [[date.year, date.month], date.strftime("%b %Y")]
+      [ [ date.year, date.month ], date.strftime("%b %Y") ]
     end
   end
 
@@ -322,7 +322,7 @@ class ReportsController < ApplicationController
   def period_ranges(end_date, periods)
     (0...periods).map do |i|
       to = i.zero? ? end_date : end_date.beginning_of_month - (i - 1).months - 1.day
-      [to.beginning_of_month, to]
+      [ to.beginning_of_month, to ]
     end
   end
 
@@ -373,7 +373,7 @@ class ReportsController < ApplicationController
 
   def flatten_tree(accounts, parent_id, depth)
     accounts.select { |a| a.parent_id == parent_id }.sort_by(&:name).flat_map do |account|
-      [{ account: account, depth: depth }] + flatten_tree(accounts, account.id, depth + 1)
+      [ { account: account, depth: depth } ] + flatten_tree(accounts, account.id, depth + 1)
     end
   end
 
@@ -438,8 +438,8 @@ class ReportsController < ApplicationController
           date && date >= from && date <= upto
         end.sum { |entry| entry.debit? ? entry.amount : -entry.amount }
 
-        [account, -raw_delta]
-      end.sort_by { |account, _effect| [Account.account_types[account.account_type], account.name] }
+        [ account, -raw_delta ]
+      end.sort_by { |account, _effect| [ Account.account_types[account.account_type], account.name ] }
     end
   end
 end

@@ -26,4 +26,3 @@ rent_tx.entries.create!(account: cash, entry_type: :credit, amount: 1000)
 groceries_tx = JournalTransaction.create!(date: Date.today, description: "Grocery Shopping")
 groceries_tx.entries.create!(account: groceries, entry_type: :debit, amount: 200)
 groceries_tx.entries.create!(account: cash, entry_type: :credit, amount: 200)
-

@@ -58,6 +58,6 @@ class WorkspacesController < ApplicationController
   end
 
   def workspace_params
-    params.expect(workspace: [:name])
+    params.expect(workspace: [ :name ])
   end
 end

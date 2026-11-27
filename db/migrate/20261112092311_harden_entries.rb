@@ -9,7 +9,7 @@ class HardenEntries < ActiveRecord::Migration[8.0]
     add_foreign_key :entries, :accounts, on_delete: :restrict
 
     add_index :entries, :journal_transaction_id
-    add_index :entries, [:account_id, :created_at]
+    add_index :entries, [ :account_id, :created_at ]
 
     add_check_constraint :entries, "amount > 0", name: "entries_amount_positive"
     add_check_constraint :entries, "entry_type IN (0, 1)", name: "entries_entry_type_valid"
