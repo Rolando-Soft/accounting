@@ -1,17 +1,25 @@
 <% entry = row[:entry] %>
+<% ledger_account = local_assigns.fetch(:account, @account) %>
 <% other_entries = entry.journal_transaction.entries.reject { |e| e.id == entry.id } %>
 <tr class="border border-gray-300 cursor-pointer hover:bg-gray-50"
     data-controller="row-link"
-    data-row-link-url-value="<%= edit_journal_transaction_path(entry.journal_transaction, register_account_id: @account.id, return_to: request.fullpath) %>"
+    data-row-link-url-value="<%= edit_journal_transaction_path(entry.journal_transaction, register_account_id: ledger_account.id, return_to: request.fullpath) %>"
     data-action="click->row-link#visit">
-  <td class="border border-blue-300 px-3 py-2"><%= entry.journal_transaction.date %></td>
+  <td class="border border-blue-300 px-3 py-2 whitespace-nowrap"><%= entry.journal_transaction.date %></td>
   <td class="border border-blue-300 px-3 py-2"><%= entry.journal_transaction.payee %></td>
   <td class="border border-blue-300 px-3 py-2 text-left">
     <% other_entries.each do |other| %>
       <div><%= other.account.name %> <span class="text-gray-500">(<%= number_to_currency(other.amount) %>)</span></div>
     <% end %>
   </td>
-  <td class="border border-blue-300 px-3 py-2"><%= entry.journal_transaction.description %></td>
+  <td class="border border-blue-300 px-3 py-2 max-w-40 truncate" title="<%= entry.journal_transaction.description %>">
+    <%= entry.journal_transaction.description %>
+  </td>
+  <td class="border border-blue-300 px-3 py-2 text-left max-w-40">
+    <% other_entries.each do |other| %>
+      <div class="truncate" title="<%= other.description %>"><%= other.description %></div>
+    <% end %>
+  </td>
   <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(entry.amount) if entry.debit? %></td>
   <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(entry.amount) if entry.credit? %></td>
   <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(row[:running_balance]) %></td>

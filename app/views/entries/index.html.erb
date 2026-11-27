@@ -3,15 +3,29 @@
 <p class="text-red-600 mb-4"><%= alert %></p>
 
 <%= form_with url: entries_path, method: :get, id: "register-filters", class: "mb-6 space-y-4" do |form| %>
-  <div>
-    <%= form.label :account_id, "Account", class: "block text-gray-700 font-bold mb-1" %>
-    <div class="relative inline-block" data-controller="account-combobox">
-      <%= form.collection_select :account_id, @accounts, :id, :label_with_type, { selected: @account&.id }, class: "hidden",
-            onchange: "this.form.requestSubmit()", data: { "account-combobox-target": "select" } %>
-      <input type="text" class="border rounded px-3 py-2 w-56" placeholder="Search account…" autocomplete="off"
-            data-account-combobox-target="input"
-            data-action="input->account-combobox#search focus->account-combobox#open blur->account-combobox#close keydown.enter->account-combobox#selectTopMatch keydown.escape->account-combobox#close" />
-      <ul class="hidden absolute z-10 bg-white border rounded shadow w-56 mt-1 max-h-60 overflow-auto" data-account-combobox-target="list"></ul>
+  <div class="flex flex-wrap items-center gap-6">
+    <div>
+      <%= form.label :account_id, "Account", class: "block text-gray-700 font-bold mb-1" %>
+      <div class="relative inline-block" data-controller="account-combobox">
+        <%= form.collection_select :account_id, @accounts, :id, :label_with_type, { selected: @account&.id }, class: "hidden",
+              onchange: "this.form.requestSubmit()", data: { "account-combobox-target": "select" } %>
+        <input type="text" class="border rounded px-3 py-2 w-56" placeholder="Search account…" autocomplete="off"
+              data-account-combobox-target="input"
+              data-action="input->account-combobox#search focus->account-combobox#open blur->account-combobox#close keydown.enter->account-combobox#selectTopMatch keydown.escape->account-combobox#close" />
+        <ul class="hidden absolute z-10 bg-white border rounded shadow w-56 mt-1 max-h-60 overflow-auto" data-account-combobox-target="list"></ul>
+      </div>
+    </div>
+
+    <div>
+      <div class="block font-bold mb-1 invisible" aria-hidden="true">Status</div>
+      <div class="flex gap-4 h-[42px] items-center">
+        <% EntriesController::STATUSES.each do |status| %>
+          <label class="flex items-center gap-1">
+            <%= check_box_tag "statuses[]", status, @selected_statuses.include?(status), id: "status_#{status}", onchange: "this.form.requestSubmit()" %>
+            <%= status.titleize %>
+          </label>
+        <% end %>
+      </div>
     </div>
   </div>
 
@@ -31,13 +45,10 @@
             { selected: @view_filter }, class: "border rounded px-2 py-1", onchange: "this.form.requestSubmit()" %>
     </div>
 
-    <div class="flex gap-4">
-      <% EntriesController::STATUSES.each do |status| %>
-        <label class="flex items-center gap-1">
-          <%= check_box_tag "statuses[]", status, @selected_statuses.include?(status), id: "status_#{status}", onchange: "this.form.requestSubmit()" %>
-          <%= status.titleize %>
-        </label>
-      <% end %>
+    <div>
+      <%= form.label :project_id, "Project", class: "font-bold mr-2" %>
+      <%= form.collection_select :project_id, @projects, :id, :label, { selected: @project&.id, include_blank: "All projects" },
+            class: "border rounded px-2 py-1", onchange: "this.form.requestSubmit()" %>
     </div>
   </div>
 <% end %>

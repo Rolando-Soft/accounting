@@ -22,23 +22,39 @@
   <p class="text-gray-600">No entries tagged to this project in this date range.</p>
 <% else %>
   <% @sections.each do |section| %>
-    <table class="table-auto w-full mb-6">
-      <thead>
-        <tr>
-          <th class="border border-blue-300 px-3 py-2 text-left bg-gray-100" colspan="2"><%= section[:label] %></th>
-        </tr>
-        <tr>
-          <th class="border border-blue-300 px-3 py-2 text-left">Account</th>
-          <th class="border border-blue-300 px-3 py-2 text-right">Amount</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% section[:rows].each do |row| %>
+    <h2 class="font-bold text-lg mb-2"><%= section[:label] %></h2>
+
+    <% section[:ledgers].each do |ledger| %>
+      <h3 class="font-semibold text-gray-700 mb-1"><%= ledger[:account].name %></h3>
+      <table class="table-auto w-full mb-4">
+        <thead>
           <tr>
-            <td class="border border-blue-300 px-3 py-2"><%= row[:account].name %></td>
-            <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(row[:total]) %></td>
+            <th class="border border-blue-300 px-3 py-2 whitespace-nowrap">Date</th>
+            <th class="border border-blue-300 px-3 py-2">Payee</th>
+            <th class="border border-blue-300 px-3 py-2">Other Account(s)</th>
+            <th class="border border-blue-300 px-3 py-2">Description</th>
+            <th class="border border-blue-300 px-3 py-2">Note</th>
+            <th class="border border-blue-300 px-3 py-2">DB</th>
+            <th class="border border-blue-300 px-3 py-2">CR</th>
+            <th class="border border-blue-300 px-3 py-2">Balance</th>
           </tr>
-        <% end %>
+        </thead>
+        <tbody>
+          <tr class="font-bold bg-gray-100">
+            <td class="border border-blue-300 px-3 py-2" colspan="7">Beginning Balance</td>
+            <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(ledger[:beginning_balance]) %></td>
+          </tr>
+          <%= render partial: "reports/ledger_row", collection: ledger[:rows], as: :row, locals: { account: ledger[:account] } %>
+          <tr class="font-bold bg-gray-100">
+            <td class="border border-blue-300 px-3 py-2" colspan="7">Ending Balance</td>
+            <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(ledger[:ending_balance]) %></td>
+          </tr>
+        </tbody>
+      </table>
+    <% end %>
+
+    <table class="table-auto w-full mb-6">
+      <tbody>
         <tr class="font-bold bg-gray-50">
           <td class="border border-blue-300 px-3 py-2">Total <%= section[:label] %></td>
           <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(section[:total]) %></td>

@@ -7,12 +7,16 @@
     <%= form.collection_select :project_id, @projects, :id, :label, { selected: @project&.id }, class: "border rounded px-2 py-1", onchange: "this.form.requestSubmit()" %>
   </div>
 
-  <div>
-    <%= form.label :view_filter, "View Filter", class: "font-bold mr-2" %>
-    <%= form.select :view_filter,
-          [["This month", "this_month"], ["Last month", "last_month"], ["Last 3 months", "last_3_months"],
-           ["This year", "this_year"], ["Last year", "last_year"], ["All dates", "all_dates"]],
-          { selected: @view_filter }, class: "border rounded px-2 py-1", onchange: "this.form.requestSubmit()" %>
+  <div class="flex items-center gap-2">
+    <%= form.label :end_date, "Through", class: "font-bold" %>
+    <%= form.date_field :end_date, value: @end_date, class: "border rounded px-3 py-2", onchange: "this.form.requestSubmit()" %>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <%= form.label :periods, "Compare", class: "font-bold" %>
+    <%= form.select :periods,
+          [["Single month", "1"], ["Last 2 months", "2"], ["Last 3 months", "3"], ["This year", "year"]],
+          { selected: @periods }, class: "border rounded px-2 py-1", onchange: "this.form.requestSubmit()" %>
   </div>
 <% end %>
 
@@ -25,27 +29,58 @@
     <thead>
       <tr>
         <th class="border border-blue-300 px-3 py-2 text-left">Account</th>
-        <th class="border border-blue-300 px-3 py-2 text-right">Amount</th>
+        <% @ranges.each do |_from, _to, label| %>
+          <th class="border border-blue-300 px-3 py-2 text-right"><%= label %></th>
+        <% end %>
+        <% if @ranges.size > 1 %>
+          <th class="border border-blue-300 px-3 py-2 text-right">Total</th>
+        <% end %>
       </tr>
     </thead>
-    <tbody>
-      <% @rows.each do |row| %>
-        <tr>
-          <td class="border border-blue-300 px-3 py-2"><%= row[:account].name %></td>
-          <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(row[:total]) %></td>
+    <% [["Income", @rows.select { |row| row[:account].income? }, @total_incomes],
+        ["Expense", @rows.select { |row| row[:account].expense? }, @total_expenses]].each do |label, rows, totals| %>
+      <tbody>
+        <tr class="bg-gray-100">
+          <th colspan="<%= @ranges.size + (@ranges.size > 1 ? 2 : 1) %>" class="border border-blue-300 px-3 py-2 text-left"><%= label %></th>
         </tr>
-      <% end %>
-      <tr class="font-bold bg-gray-50">
-        <td class="border border-blue-300 px-3 py-2">Total Income</td>
-        <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(@total_income) %></td>
-      </tr>
-      <tr class="font-bold bg-gray-50">
-        <td class="border border-blue-300 px-3 py-2">Total Expense</td>
-        <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(@total_expense) %></td>
-      </tr>
-      <tr class="font-bold bg-gray-100">
+        <% rows.each do |row| %>
+          <tr>
+            <td class="border border-blue-300 px-3 py-2">
+              <%= link_to row[:account].name, account_ledger_path(account_id: row[:account].id, project_id: @project.id), class: "text-blue-600 hover:underline" %>
+            </td>
+            <% row[:totals].each do |total| %>
+              <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(total) %></td>
+            <% end %>
+            <% if @ranges.size > 1 %>
+              <td class="border border-blue-300 px-3 py-2 text-right font-bold"><%= number_to_currency(row[:totals].sum) %></td>
+            <% end %>
+          </tr>
+        <% end %>
+        <tr class="font-bold">
+          <td class="border border-blue-300 px-3 py-2">Total <%= label %></td>
+          <% totals.each do |total| %>
+            <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(total) %></td>
+          <% end %>
+          <% if @ranges.size > 1 %>
+            <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(totals.sum) %></td>
+          <% end %>
+        </tr>
+      </tbody>
+    <% end %>
+    <tbody>
+      <tr class="font-bold border-t-4 border-gray-400">
         <td class="border border-blue-300 px-3 py-2">Net Profit</td>
-        <td class="border border-blue-300 px-3 py-2 text-right"><%= number_to_currency(@net_profit) %></td>
+        <% @net_profits.each do |net_profit| %>
+          <td class="border border-blue-300 px-3 py-2 text-right <%= net_profit.negative? ? "text-red-600" : "text-green-600" %>">
+            <%= number_to_currency(net_profit) %>
+          </td>
+        <% end %>
+        <% if @ranges.size > 1 %>
+          <% total_net_profit = @net_profits.sum %>
+          <td class="border border-blue-300 px-3 py-2 text-right <%= total_net_profit.negative? ? "text-red-600" : "text-green-600" %>">
+            <%= number_to_currency(total_net_profit) %>
+          </td>
+        <% end %>
       </tr>
     </tbody>
   </table>

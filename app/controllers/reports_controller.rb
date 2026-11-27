@@ -17,18 +17,20 @@ class ReportsController < ApplicationController
   end
 
   # One column per calendar month, most recent first — @periods controls
-  # how many (1, the plain single-month view, up to 3). The most recent
-  # column runs from the start of @end_date's month through @end_date
-  # itself (so the current, still-in-progress month reports to date);
-  # earlier columns are each a full prior calendar month.
+  # how many (1, the plain single-month view, up to 3), or "year" for a
+  # single Jan 1-through-@end_date column instead (year to date, same
+  # "still-in-progress period reports to date" convention as a single
+  # month). The most recent monthly column runs from the start of
+  # @end_date's month through @end_date itself; earlier columns are each a
+  # full prior calendar month.
   def income_statement
     @end_date = parse_date(params[:end_date]) || Date.current
-    @periods = (params[:periods].presence || "1").to_i.clamp(1, 3)
+    @periods = %w[1 2 3 year].include?(params[:periods]) ? params[:periods] : "1"
     @show_children = params[:show_children] != "0"
     @hide_zero_balances = params[:hide_zero_balances] == "1"
-    @ranges = period_ranges(@end_date, @periods)
+    @ranges = period_ranges_with_labels(@end_date, @periods)
     @trees = account_trees(%w[income expense])
-    @columns = @ranges.map { |from, to| income_statement_column(from, to) }
+    @columns = @ranges.map { |from, to, label| income_statement_column(from, to).merge(label: label) }
   end
 
   # Direct method: cash accounts are the asset accounts, and every other
@@ -83,10 +85,13 @@ class ReportsController < ApplicationController
     @accounts = Account.ordered_by_type
     @account = @accounts.find_by(id: params[:account_id]) || @accounts.first
     @view_filter = normalize_view_filter(params[:view_filter])
+    @projects = Project.order(:name)
+    @project = @projects.find_by(id: params[:project_id])
 
     if @account
       from, to = view_filter_range(@view_filter)
       all_entries = @account.entries.includes(journal_transaction: { entries: :account }).to_a
+        .select { |entry| @project.nil? || entry.project_id == @project.id }
         .sort_by { |entry| [ entry.journal_transaction.date, entry.id ] }
 
       @beginning_balance = from ? all_entries.select { |e| e.journal_transaction.date < from }.sum(&:signed_amount) : 0
@@ -181,26 +186,34 @@ class ReportsController < ApplicationController
 
   # Revenue, expense, and net profit for a single project's Income/Expense
   # entries — the same signed_amount convention the Income Statement uses,
-  # just scoped to one project's tagged lines instead of every account.
+  # just scoped to one project's tagged lines instead of every account. A
+  # "Through" date plus 1-3 comparison periods, same as the Income
+  # Statement — not an "as of" snapshot date like the Balance Sheet, since
+  # Income/Expense accounts are period totals, not point-in-time balances.
   def project_profitability
     @projects = Project.order(:name)
     @project = @projects.find_by(id: params[:project_id]) || @projects.first
-    @view_filter = normalize_view_filter(params[:view_filter])
-    from, to = view_filter_range(@view_filter)
+    @end_date = parse_date(params[:end_date]) || Date.current
+    @periods = %w[1 2 3 year].include?(params[:periods]) ? params[:periods] : "1"
+    @ranges = period_ranges_with_labels(@end_date, @periods)
 
     if @project
-      entries = Entry.for_project(@project.id).profit_and_loss.includes(:account, :journal_transaction)
-      scoped = entries.select { |entry| within_range?(entry, from, to) }
+      all_entries = Entry.for_project(@project.id).profit_and_loss.includes(:account, :journal_transaction).to_a
+      by_column = @ranges.map { |from, to, _label| all_entries.select { |entry| within_range?(entry, from, to) }.group_by(&:account) }
 
-      @rows = scoped.group_by(&:account).map { |account, group| { account: account, total: group.sum(&:signed_amount) } }
-        .sort_by { |row| [ Account.account_types[row[:account].account_type], row[:account].name ] }
+      accounts = by_column.flat_map(&:keys).uniq
+        .sort_by { |account| [ Account.account_types[account.account_type], account.name ] }
 
-      @total_income = @rows.select { |row| row[:account].income? }.sum { |row| row[:total] }
-      @total_expense = @rows.select { |row| row[:account].expense? }.sum { |row| row[:total] }
-      @net_profit = @total_income - @total_expense
+      @rows = accounts.map do |account|
+        { account: account, totals: by_column.map { |column| column[account]&.sum(&:signed_amount) || 0 } }
+      end
+
+      @total_incomes = by_column.map { |column| column.select { |account, _| account.income? }.sum { |_, group| group.sum(&:signed_amount) } }
+      @total_expenses = by_column.map { |column| column.select { |account, _| account.expense? }.sum { |_, group| group.sum(&:signed_amount) } }
+      @net_profits = @total_incomes.zip(@total_expenses).map { |income, expense| income - expense }
     else
       @rows = []
-      @total_income = @total_expense = @net_profit = 0
+      @total_incomes = @total_expenses = @net_profits = []
     end
   end
 
@@ -208,7 +221,10 @@ class ReportsController < ApplicationController
   # so open A/R, open A/P, client retainers, and capitalized project costs
   # (whichever Asset/Liability accounts the user tracks those under) all
   # surface here alongside the project's Income/Expense activity, grouped
-  # the same way the chart of accounts itself is grouped.
+  # the same way the chart of accounts itself is grouped. Each account gets
+  # its own mini ledger (beginning balance, entries, running balance) and
+  # reuses the Account Ledger's row partial, so a row here opens the
+  # underlying transaction for editing exactly like the Account Ledger does.
   def project_ledger
     @projects = Project.order(:name)
     @project = @projects.find_by(id: params[:project_id]) || @projects.first
@@ -216,19 +232,32 @@ class ReportsController < ApplicationController
     from, to = view_filter_range(@view_filter)
 
     if @project
-      entries = Entry.for_project(@project.id).includes(:account, :journal_transaction)
-      scoped = entries.select { |entry| within_range?(entry, from, to) }
-      by_type = scoped.group_by { |entry| entry.account.account_type }
+      all_entries = Entry.for_project(@project.id).includes(:account, journal_transaction: { entries: :account }).to_a
+      by_account = all_entries.group_by(&:account)
+
+      account_ledgers = by_account.filter_map do |account, account_entries|
+        sorted = account_entries.sort_by { |entry| [ entry.journal_transaction.date, entry.id ] }
+        beginning_balance = from ? sorted.select { |e| e.journal_transaction.date < from }.sum(&:signed_amount) : 0
+        entries_in_range = sorted.select { |e| from.nil? || e.journal_transaction.date.between?(from, to) }
+        next if entries_in_range.empty? && beginning_balance.zero?
+
+        running_balance = beginning_balance
+        rows = entries_in_range.map do |entry|
+          running_balance += entry.signed_amount
+          { entry: entry, running_balance: running_balance }
+        end
+
+        { account: account, beginning_balance: beginning_balance, rows: rows, ending_balance: running_balance }
+      end
+
+      by_type = account_ledgers.group_by { |ledger| ledger[:account].account_type }
 
       @sections = Account::TYPE_LABELS.keys.filter_map do |type|
-        type_entries = by_type[type]
-        next if type_entries.blank?
+        type_ledgers = by_type[type]
+        next if type_ledgers.blank?
 
-        rows = type_entries.group_by(&:account).map do |account, group|
-          { account: account, total: group.sum(&:signed_amount) }
-        end.sort_by { |row| row[:account].name }
-
-        { label: Account::TYPE_LABELS[type], rows: rows, total: rows.sum { |row| row[:total] } }
+        type_ledgers = type_ledgers.sort_by { |ledger| ledger[:account].name }
+        { label: Account::TYPE_LABELS[type], ledgers: type_ledgers, total: type_ledgers.sum { |ledger| ledger[:ending_balance] } }
       end
     else
       @sections = []
@@ -323,6 +352,17 @@ class ReportsController < ApplicationController
     (0...periods).map do |i|
       to = i.zero? ? end_date : end_date.beginning_of_month - (i - 1).months - 1.day
       [ to.beginning_of_month, to ]
+    end
+  end
+
+  # [[from, to, label], ...] — like period_ranges, but each range carries
+  # its own column header label, and "year" gives a single Jan 1-through-
+  # end_date column (year to date) instead of calendar months.
+  def period_ranges_with_labels(end_date, compare)
+    if compare == "year"
+      [ [ end_date.beginning_of_year, end_date, end_date.year.to_s ] ]
+    else
+      period_ranges(end_date, compare.to_i).map { |from, to| [ from, to, to.strftime("%b %Y") ] }
     end
   end
 

@@ -69,6 +69,8 @@ class EntriesController < ApplicationController
     @view_filter = normalize_view_filter(source_params[:view_filter])
     @selected_statuses = Array(source_params[:statuses]).presence || STATUSES
     @statement_balance = source_params[:statement_balance].presence&.delete(",")&.to_d || 0
+    @projects = Project.order(:name)
+    @project = @projects.find_by(id: source_params[:project_id])
 
     if @account
       all_entries = @account.entries.includes(journal_transaction: { entries: :account }).to_a
@@ -78,6 +80,10 @@ class EntriesController < ApplicationController
       # against the current statement but not yet finalized. Computed is
       # their sum; Difference is how far Computed is from the statement's
       # own ending balance (drives toward $0 as you finish reconciling).
+      # These always reflect the real, unfiltered account — like the
+      # status checkboxes below, the Project filter only narrows which
+      # rows are *listed*, so it never throws off reconciling against a
+      # real bank/card statement.
       @ticked_entries = entries_in_view.select(&:cleared?)
       @reconciled_balance = sum_signed(entries_in_view.select(&:reconciled?))
       @ticked_balance = sum_signed(@ticked_entries)
@@ -87,6 +93,7 @@ class EntriesController < ApplicationController
 
       @entries = entries_in_view
         .select { |e| @selected_statuses.include?(e.reconciliation_status) }
+        .select { |e| @project.nil? || e.project_id == @project.id }
         .sort_by { |e| [ e.journal_transaction.date, e.id ] }
         .reverse
     else
